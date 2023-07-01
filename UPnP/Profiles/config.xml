@@ -22,8 +22,6 @@
     <send_coverart>false</send_coverart>
     <flow>0</flow>
   </common>
- 
   <slimmain_log>warn</slimmain_log>
   <upnp_log>info</upnp_log>
- 
 </squeeze2upnp>
