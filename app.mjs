@@ -44,10 +44,10 @@ async function start_up(){
 	exec("pkill -f -9 squeezelite")
     squeezelite = "squeezelite"
 	await start_roon().catch(err => console.error(err))
-	console.log(system_info.toString(),roon.extension_reginfo.display_version)
+	console.log(system_info.toString(),"Version :",roon.extension_reginfo.display_version)
 	const c = spawn("squeezelite")
 		c.on('error', async function(err) {
-		console.error('SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
+		log && console.error('SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true)
 	})
 	await start_heos().catch(err => console.error(err))
@@ -229,7 +229,7 @@ async function create_root_xml() {
 	})
 }
 async function start_heos(counter = 0) {
-	console.log("STARTING HEOS")
+	log && console.log("STARTING HEOS")
 	rheos_connection || (rheos_connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000,port:1255, address:system_info[0]}),HeosApi.discoverAndConnect({timeout:10000,port:1256, address:system_info[0]})]))
 	try {
 		rheos_connection[0].socket.setMaxListeners(32)
@@ -1027,7 +1027,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.7.0-1",
+		display_version: "0.7.0-2",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1051,9 +1051,10 @@ async function connect_roon() {
 							if (Array.isArray(o?.source_controls)){
 								let player = await get_player(o?.source_controls[0]?.display_name);
 								player && (player.output = o.output_id)
+								o.player = player
+						    	rheos_outputs.set(o.output_id, o)
 							}
-							o.player = player
-						    rheos_outputs.set(o.output_id, o)
+							
 						}
 						break		
 					case "Changed" : {
@@ -1083,7 +1084,7 @@ async function connect_roon() {
 						Array.isArray(data.zones_removed) && await update_zones(data.zones_removed);	
 					}	
 					break
-					default: console.error('⚠',cmd,data)
+					default: console.error('⚠',"SUBSCRIBED ERROR",cmd,data)
 				}
 			})
 		},
