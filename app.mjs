@@ -1,4 +1,4 @@
-const version = "0.7.0-3"
+const version = "0.7.0-5"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -15,7 +15,7 @@ import util from "node:util"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
 
-var roon, svc_status, my_settings, svc_transport, svc_source_control, rheos_connection, my_players, my_fixed_groups, squeezelite, isHeos;
+var roon, svc_status, my_settings, svc_transport, svc_source_control, rheos_connection, my_players, my_fixed_groups, squeezelite, isHeos, AVR;
 const fixed_groups = new Map()
 const all_groups = new Map()
 const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
@@ -37,6 +37,7 @@ const builder = new xml2js.Builder({ async: true })
 const log = process.argv.includes("-l")||process.argv.includes("-log") || false
 const sound_modes = ["MSDIRECT","MSSTEREO","MSPURE DIRECT","MSDOLBY DIGITAL","MSMCH STEREO","MSVIRTUAL","MSNEURAL:X"]
 init_signal_handlers()
+
 start_up()
 async function start_up(){
 	exec("pkill -f -9 UPnP")
@@ -54,7 +55,7 @@ async function start_up(){
     await build_devices().catch(err => console.error("⚠ Error Building Devices",err => {throw error(err)}))
 	await add_listeners().catch(err => console.error("⚠ Error Adding Listeners",err => {throw error(err)}))
 	await load_fixed_groups().catch(err => console.error("⚠ Error Loading Fixed Groups",err => {throw error(err)}))
-	await create_zone_controls()
+	AVR && await create_zone_controls()
 	monitor()
 	setTimeout(() => {start_listening().catch(err => console.error("⚠ Error Starting Listening",err => {throw error(err)}))},10000)
 }
@@ -176,7 +177,7 @@ async function discover_devices() {
 		}, 1000
 	)
 	return new Promise(async function (resolve) {
-		const players = await get_players()
+		const players = await get_players().catch(() => {console.log("UNABLE TO GET PLAYERS"); process.exit(0)})
 			try {
 				    log && console.log('READING PROFILES CONFIG')
 					const data = await fs.readFile('./UPnP/Profiles/config.xml', 'utf8')
@@ -257,32 +258,52 @@ async function start_heos(counter = 0) {
 		}
 	}
 }
-async function get_players(players) {
-	log && console.log("GETTING PLAYERS")
+async function get_players() {
+	console.log("GETTING PLAYERS")
 	return new Promise(function (resolve, reject) {
 		if (!rheos_connection) {reject("AWAITING CONNECTION")}
 		rheos_connection[1]
 		.write("player", "get_players", {})
 		.once({ commandGroup: 'player', command: 'get_players' }, (players) => {
 			switch(true){
-				case (players?.payload?.length > 0) : {resolve(players?.payload)}	
+
+				case (players?.payload?.length > 0) : {
+					console.log("FOUND",players.payload.length, "PLAYERS")
+					resolve(players?.payload)
+				}	
 				break
-				case (players.heos.result === "fail"):reject() 			
+				case (players.heos.result === "failed"):{
+					console.log(players)
+					reject()
+				}			
 				break
 				case (players.heos.message.unparsed == "command under process"):{
-					{console.log(players);resolve(get_players())}
+					console.log(players.heos);
+					resolve(get_players().catch(err => {
+						console.log("⚠ awaiting response to get players")
+					}))
 				} 
 				break
-				default : {reject()}
+				case (players?.payload?.length > 16) : {
+					console.log("⚠ LIMIT OF 16  HEOS PLAYERS EXCEEDED ",players.payload.length)
+					reject()
+				}
+				break
+				default : {
+					console.log("⚠ ERROR GETTING PLAYERS",players)
+					reject()
+					process.exit(0)
+					
+				} 
 			}
-		}
-		)
+		})
 	})
 }
 async function compare_players(){
 	log && console.log('GETTING PLAYERS TO COMPARE')
 	const old_pids = [...rheos_players.keys()]
-	const new_players = await get_players()
+	const new_players = await get_players().catch(() => {console.error("⚠ UNABLE TO GET PLAYERS TO COMPARE")})
+	if (!new_players) {return}
 	const new_pids = new_players.map(p => p?.pid)
 	const newp =  new_pids.filter(new_pid => !old_pids.includes(new_pid))
 	const delp =  old_pids.filter(old_pid => !new_pids.includes(old_pid))
@@ -333,7 +354,7 @@ async function create_fixed_group(group){
 			process.kill( rheos.processes[hex]?.pid,'SIGKILL') 
 			fixed_groups.delete(g)
 			await get_all_groups()
-		} catch { log && console.log("UNABLE TO DELETE PROCESS FOR"),group}	
+		} catch { log && console.log("⚠ UNABLE TO DELETE PROCESS FOR"),group}	
 	}
     const name = group[1].name.split("+")
 	const display_name = "🔗 " +name[0].trim()+" + " + (name.length)
@@ -357,7 +378,7 @@ async function remove_fixed_group(g) {
 		fixed_groups.delete(g)
 		await get_all_groups()
 	}
-	catch { log && console.log("UNABLE TO DELETE PROCESS FOR"),g}	 
+	catch { log && console.log("⚠ UNABLE TO DELETE PROCESS FOR"),g}	 
    	return 
 }
 async function start_roon() {
@@ -369,6 +390,7 @@ async function start_roon() {
 	const def = JSON.parse(await fs.readFile('./default_settings.json','utf-8'))
 	my_settings = roon.load_config("settings")|| def.settings || {}
 	my_players = roon.load_config("players") || []
+	AVR = my_settings.AVR_control
 	let  fg = roon.load_config("fixed_groups") || []
 	if (fg.length){
 		my_fixed_groups = JSON.parse(fg)
@@ -398,7 +420,14 @@ async function start_roon() {
 						await group_enqueue(fg[1].gid)
 					}		
 			    }
-			my_settings = l.values
+				my_settings = l.values
+				if (AVR !== my_settings.AVR_control){
+					AVR = my_settings.AVR_control
+					create_avr_zones()
+					create_zone_controls()
+				}
+			
+			
 			log && console.log(my_settings)
 			my_fixed_groups = JSON.stringify([...fixed_groups.entries()])
 			roon.save_config("fixed_groups",my_fixed_groups)
@@ -454,14 +483,14 @@ async function avr_dequeue(res) {
 async function create_zone_controls() {	
 	for (let player of rheos_players){
 		if (!player[1].model.includes("HEOS")){	
-        	try {	           
+        	try {	      
 				let Z2 = await control_avr(player[1].ip,"Z2?").catch(err => log && console.log(player ? "NOT AN AVR : " + player[1].model : err))
 				if (Z2.length == 5 && (player[1].type = "AVR")){
 					if (rheos.has_avr == false){
-						create_avr_zone()
+						create_avr_zones()
 						rheos.has_avr = true
 					}
-					isHeos = await control_avr(player[1].ip,"SI?").catch (err => console.log("error getting status",err)).then(o => o.findIndex(o => o=="SINET")>-1)
+					isHeos = await control_avr(player[1].ip,"SI?").catch (err => console.log("⚠ Error getting status",err)).then(o => o.findIndex(o => o=="SINET")>-1)
 					player[1].controller = {}
 					let pid = (Math.abs(player.at(0).toString())+1)			
 					let controls = ["ZM","Z2","MS"],counter = 0
@@ -488,12 +517,11 @@ async function create_zone_controls() {
 								break
 							}
 						}	
-						//console.log("IN ZONE",display_name,(rheos_zones.get(rheos_outputs.get(player[1]?.output).zone_id)).outputs.length)//.findIndex((o )=> {o.display_name == display_name}))//.find(o => o.display_name == display_name))
 						let controller = {    
 							state: {
 								control_key: pid+counter,
 								display_name: display_name,
-								supports_standby:  isOn == "indeterminate" || true, //(rheos_zones.get(rheos_outputs.get(player[1]?.output).zone_id)).outputs.find(o => o.display_name == display_name),
+								supports_standby:  isOn == "indeterminate" || true, 
 								status: isOn == "indeterminate" ? isOn : ((isOn.findIndex(x => x.match(/Z*ON/))==-1) ? "deselected" : isHeos ? "selected" : "standby"),
 								output : player[1].output
 							},  
@@ -555,19 +583,24 @@ async function update_control (control,player,command,res){
 			let display_name = (next.slice(0,1)+next.slice(1))
 			player.controller[control.state.control_key].update_state({display_name : "♫ " + display_name, status : "indeterminate"}) 	
 		}
-		catch {err => console.err("NOTHING RETURNED",err)}
+		catch {err => console.err("⚠ NOTHING RETURNED",err)}
 	} 	
 }
-async function create_avr_zone(hex,name){
+async function create_avr_zones(){
 	 for (let i = 0; i < 2; i++) {
-		hex = (Math.abs(887889)+i).toString(16)
+		let hex = (Math.abs(887889)+i).toString(16)
 		if (rheos.processes[hex]?.pid){
+			console.log("SWATTING ZONE")
 			process.kill(Number(rheos.processes[hex].pid,'SIGKILL'))
 			delete rheos.processes[hex]	
 		}
-		const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
-		log && console.log("SPAWNING SQUEEZELITE",z,mac)
-		rheos.processes[hex] = spawn(squeezelite,["-M",i == 0? "Zone 1": "Zone 2","-m", mac,"-o","-"])	
+		if (AVR){
+			console.log("CREATING ZONE")
+			const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
+			log && console.log("SPAWNING SQUEEZELITE",i == 0? "Zone 1": "Zone 2",mac)
+			rheos.processes[hex] = spawn(squeezelite,["-M",i == 0? "Zone 1": "Zone 2","-m", mac,"-o","-"])		
+		}
+
 	  } 
 	return
 }
@@ -581,44 +614,46 @@ async function update_outputs(outputs){
 				player.output = op.output_id
 				op.player = player
 				player.volume && await update_volume(op,player)
-				let pid = (Math.abs(player.pid.toString())+1).toString()
-				for (let control of op.source_controls){ 
-					let {control_key} = control 
-					let control_changed = JSON.stringify(control) !== JSON.stringify(old_op?.source_controls.find(c => c.control_key == control_key))
-					if (control_changed && player.controller && player.controller[pid]){
-						let {display_name} = control
-							let req
-							switch (true){
-								case display_name.includes("Zone 1"): req = "ZM?";break
-								case display_name.includes("Zone 2"): req = "Z2?";break
-								case display_name.includes("SOUND MODE"): req = "MS?";break
-								default : req=null
-							}
-						if (req){
-							try {
-							let res = await control_avr(player.ip,req)	
-							switch (req){
-								case "ZM?" :{
-									player.controller[pid].update_state({display_name: "Zone 1",
-									status : res.includes("ZMON")? isHeos ? "selected": "standby" :"deselected",
-								})
-								} break
-								case "Z2?" : {player.controller[(Math.abs(player.pid.toString())+2)].update_state({
-									display_name: "Zone 2",
-									status : res.includes("Z2ON")? isHeos ? "selected": "standby" :"deselected",
-								})
-								} break
-								case "MS?" : {
-									res = res.find(r=>r.includes("MS")).slice(2)
-									player.controller[(Math.abs(player.pid.toString())+3)].update_state({display_name: "♫ "+res})
-								} break
-							}} 
-							catch {
-								log && console.error("NO RESPONSE TO UPDATE OUTPUTS")
+				if (AVR){
+					let pid = (Math.abs(player.pid.toString())+1).toString()
+					for (let control of op.source_controls){ 
+						let {control_key} = control 
+						let control_changed = JSON.stringify(control) !== JSON.stringify(old_op?.source_controls.find(c => c.control_key == control_key))
+						if (control_changed && player.controller && player.controller[pid]){
+							let {display_name} = control
+								let req
+								switch (true){
+									case display_name.includes("Zone 1"): req = "ZM?";break
+									case display_name.includes("Zone 2"): req = "Z2?";break
+									case display_name.includes("SOUND MODE"): req = "MS?";break
+									default : req=null
+								}
+							if (req){
+								try {
+								let res = await control_avr(player.ip,req)	
+								switch (req){
+									case "ZM?" :{
+										player.controller[pid].update_state({display_name: "Zone 1",
+										status : res.includes("ZMON")? isHeos ? "selected": "standby" :"deselected",
+									})
+									} break
+									case "Z2?" : {player.controller[(Math.abs(player.pid.toString())+2)].update_state({
+										display_name: "Zone 2",
+										status : res.includes("Z2ON")? isHeos ? "selected": "standby" :"deselected",
+									})
+									} break
+									case "MS?" : {
+										res = res.find(r=>r.includes("MS")).slice(2)
+										player.controller[(Math.abs(player.pid.toString())+3)].update_state({display_name: "♫ "+res})
+									} break
+								}} 
+								catch {
+									log && console.error("⚠ NO RESPONSE TO UPDATE OUTPUTS")
+								}
 							}
 						}
 					}
-				}	
+				}
 			} 
 			let group = [...fixed_groups.values()].find(fixed => fixed.output == op.display_name)
 			if (group) {	
@@ -634,7 +669,7 @@ async function update_outputs(outputs){
 					try {
 						avr?.ip && await control_avr(avr.ip,"MV"+op.volume.value)
 					} catch {
-						log && console.error("NO RESPONSE Z1")
+						log && console.error("⚠ NO RESPONSE Z1")
 					}
 				}
 				avr_zone_controls.Zone1  = op.output_id
@@ -645,7 +680,7 @@ async function update_outputs(outputs){
 					try {
 						avr?.ip && await control_avr(avr.ip,"Z2"+op.volume.value)	
 					} catch {
-                    	log && console.log("Please Ensure Fixed volume is NOT selected")
+                    	log && console.log("⚠ Please Ensure Fixed volume is NOT selected")
 					}	
 				}	
 				avr_zone_controls.Zone2 = op.output_id
@@ -681,7 +716,6 @@ async function update_zones(zones){
 					if (selected.indexOf(avr_zone_controls.Zone2)>-1 ){
 						player.controller[pid+1].update_state({supports_standby :  z.outputs.findIndex(o => o.source_controls[0].display_name == "Zone 2")>-1})
 					}
-					//console.log("KILL GROUP",group.map(o => o.display_name))
 					svc_transport.ungroup_outputs(group)	
 				} else {
 					if (standby_output){
@@ -713,7 +747,7 @@ async function update_zones(zones){
 							player.controller[pid] && player.controller[pid].update_state({supports_standby :  !group.find(o => o.display_name == "Zone 1")})
 							player.controller[pid+1] && player.controller[pid+1].update_state({supports_standby :  !group.find(o => o.display_name == "Zone 2")})
 						} catch {
-							log && console.error("Controller not present")
+							log && console.error("⚠ Controller not present")
 						}
 							
 					}
@@ -1023,7 +1057,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.7.0-3",
+		display_version: "0.7.0-5",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1156,6 +1190,10 @@ function makelayout(my_settings) {
 
 	l.layout.push(
 		{ title: "Maximum Safe Volume", type: "integer", setting: 'max_safe_vol', min: 0, max: 100 }
+		
+	)
+	l.layout.push(
+		{ title: "Enable AVR Zone Volume Control ", type: "dropdown", setting: 'AVR_control', values : [{title: "YES", value : true},{title : "NO", value :false}]}
 		
 	)
 	if (players.length) {

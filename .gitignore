@@ -3,5 +3,5 @@ common.log
 *.xml
 *.log
 *.pid
-!config.xml
+
 
