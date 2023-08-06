@@ -1,4 +1,5 @@
 const version = "0.7.1-0"
+
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -37,7 +38,8 @@ const fixed_group_controls = {}
 const rheos_connect = RheosConnect.Telnet
 const builder = new xml2js.Builder({ async: true })
 const devices = {}
-const log = process.argv.includes("-l")||process.argv.includes("-log") || false
+const log = false //process.argv.includes("-l")||process.argv.includes("-log") || 
+
 const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIRTUAL","MSUSE LAST SELECTED"]
 init_signal_handlers()
 start_up()

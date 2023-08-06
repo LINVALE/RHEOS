@@ -3,5 +3,6 @@ common.log
 *.xml
 *.log
 *.pid
+/UPnP/Profiles
 
 

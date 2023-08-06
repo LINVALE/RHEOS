@@ -26,91 +26,10 @@
   <slimmain_log>warn</slimmain_log>
   <upnp_log>info</upnp_log>
   <device>
-    <udn>uuid:1821c75e-1a93-1380-0080-000678a354cb</udn>
-    <name>Study</name>
-    <friendly_name>Study</friendly_name>
-    <mac>bb:bb:f3:11:e2:d6</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
     <udn>uuid:391bf51e-cf84-1ecb-0080-0005cd75cce0</udn>
     <name>Porch</name>
     <friendly_name>Porch</friendly_name>
     <mac>bb:bb:e5:01:6f:e9</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:37814f3e-016f-19ae-0080-0005cd721d88</udn>
-    <name>Pearl</name>
-    <friendly_name>Pearl</friendly_name>
-    <mac>bb:bb:5e:27:cc:3c</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:7d6d6e3c-c603-1d5c-0080-0005cd51b1e0</udn>
-    <name>Living Room</name>
-    <friendly_name>Living Room</friendly_name>
-    <mac>bb:bb:1b:7a:5e:3d</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:ae3a7d58-4ada-199b-0080-0005cd51f858</udn>
-    <name>Dining Room</name>
-    <friendly_name>Dining Room</friendly_name>
-    <mac>bb:bb:90:0d:fb:b0</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:da0e2693-a5c9-1628-0080-0005cd52e93e</udn>
-    <name>Music Room</name>
-    <friendly_name>Music Room</friendly_name>
-    <mac>bb:bb:4c:36:c1:9b</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:c8787af0-4923-19a3-0080-0005cd46839e</udn>
-    <name>Crystal</name>
-    <friendly_name>Crystal</friendly_name>
-    <mac>bb:bb:19:d3:75:7d</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:eab0e5e6-bed5-15bb-0080-0005cd807216</udn>
-    <name>Theater</name>
-    <friendly_name>Theater</friendly_name>
-    <mac>bb:bb:ad:d9:10:b3</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:1226abeb-d675-171d-0080-0005cd52b5dc</udn>
-    <name>Soundbar</name>
-    <friendly_name>Soundbar</friendly_name>
-    <mac>bb:bb:9b:67:09:6f</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
-  <device>
-    <udn>uuid:92d1a7f8-a6c2-1022-0080-0005cd759950</udn>
-    <name>Cobalt</name>
-    <friendly_name>Cobalt</friendly_name>
-    <mac>bb:bb:08:58:d9:4c</mac>
     <enabled>1</enabled>
     <mode>flc:0,r:48000,s:16</mode>
     <sample_rate>48000</sample_rate>
@@ -125,10 +44,46 @@
     <sample_rate>48000</sample_rate>
   </device>
   <device>
+    <udn>uuid:37814f3e-016f-19ae-0080-0005cd721d88</udn>
+    <name>Pearl</name>
+    <friendly_name>Pearl</friendly_name>
+    <mac>bb:bb:5e:27:cc:3c</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:da0e2693-a5c9-1628-0080-0005cd52e93e</udn>
+    <name>Music Room</name>
+    <friendly_name>Music Room</friendly_name>
+    <mac>bb:bb:4c:36:c1:9b</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:1821c75e-1a93-1380-0080-000678a354cb</udn>
+    <name>Study</name>
+    <friendly_name>Study</friendly_name>
+    <mac>bb:bb:f3:11:e2:d6</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
     <udn>uuid:1f91f0ab-4d19-151b-0080-0005cdf9dd52</udn>
     <name>Family Room ND8006</name>
     <friendly_name>Family Room ND8006</friendly_name>
     <mac>bb:bb:61:4b:6b:4f</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:7d6d6e3c-c603-1d5c-0080-0005cd51b1e0</udn>
+    <name>Living Room</name>
+    <friendly_name>Living Room</friendly_name>
+    <mac>bb:bb:1b:7a:5e:3d</mac>
     <enabled>1</enabled>
     <mode>flc:0,r:48000,s:16</mode>
     <sample_rate>48000</sample_rate>
@@ -143,10 +98,55 @@
     <sample_rate>48000</sample_rate>
   </device>
   <device>
+    <udn>uuid:92d1a7f8-a6c2-1022-0080-0005cd759950</udn>
+    <name>Cobalt</name>
+    <friendly_name>Cobalt</friendly_name>
+    <mac>bb:bb:08:58:d9:4c</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:ae3a7d58-4ada-199b-0080-0005cd51f858</udn>
+    <name>Dining Room</name>
+    <friendly_name>Dining Room</friendly_name>
+    <mac>bb:bb:90:0d:fb:b0</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:eab0e5e6-bed5-15bb-0080-0005cd807216</udn>
+    <name>Theater</name>
+    <friendly_name>Theater</friendly_name>
+    <mac>bb:bb:ad:d9:10:b3</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:c8787af0-4923-19a3-0080-0005cd46839e</udn>
+    <name>Crystal</name>
+    <friendly_name>Crystal</friendly_name>
+    <mac>bb:bb:19:d3:75:7d</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
     <udn>uuid:1862dd58-bc11-12ea-0080-0005cd51b45e</udn>
     <name>Kitchen</name>
     <friendly_name>Kitchen</friendly_name>
     <mac>bb:bb:ca:f1:92:0a</mac>
+    <enabled>1</enabled>
+    <mode>flc:0,r:48000,s:16</mode>
+    <sample_rate>48000</sample_rate>
+  </device>
+  <device>
+    <udn>uuid:1226abeb-d675-171d-0080-0005cd52b5dc</udn>
+    <name>Soundbar</name>
+    <friendly_name>Soundbar</friendly_name>
+    <mac>bb:bb:9b:67:09:6f</mac>
     <enabled>1</enabled>
     <mode>flc:0,r:48000,s:16</mode>
     <sample_rate>48000</sample_rate>
