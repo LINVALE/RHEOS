@@ -14,7 +14,8 @@
         "send_coverart": false,
         "send_metadata": false,
         "flow": 0,
-        "max_safe_vol" : 80, 
-        "AVR_control": true
+        "max_safe_vol" : 70, 
+        "avr_control": false,
+        "fixed_control" : false
         }
     }
