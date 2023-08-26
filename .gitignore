@@ -1,8 +1,9 @@
 config.json
 common.log
 *.xml
+
 *.log
 *.pid
-/UPnP/Profiles
+#/UPnP/Profiles
 
 
