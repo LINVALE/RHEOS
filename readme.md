@@ -10,6 +10,7 @@ A ROON Extension to allow  control of Denon/Marantz HEOS devices from ROON.
 -   🎯 Bi-directional Control of player play, pause, previous, volume, mute and grouping within HEOS players from ROON or Heos App.
 -   🎶 Group HEOS devices from ROON. Uses HEOS grouping to ensure synchronization with other HEOS players. Only groups HEOS players.
 -   🔗 Create fixed groups for ROON outputs. Allows volume  control of all grouped players from ROON interface using single control.
+-   ⇆  Control Denon/Marantz Amplifier Zone volumes and select sound modes.
 -   🔊 Does not use AirPlay so can stream at Hi-Resolution for HS2 players.
 -   🚫 Written in pure Javascript / Nodejs with limited module dependencies (heos-api, squeeze2UPnP, Xml2js,ip)
 
@@ -22,6 +23,8 @@ The simplest way to install this is using the roon-extension-manager https://git
 Tested with a raspberry pi3 (Ubuntu 32 bit), pi 4(3Ubuntu 2 and 64bit) and NUC (Ubuntu 22.04.1 LTS amd64)
 
 Next option is to install docker and pull a copy from my repo : https://hub.docker.com/repository/docker/rheos/roon-extension-rheos
+
+If you want to run and use a local configuraion file (so that settings are saved between updates) run with -v option. 
 
 To manually install (e.g. if you want to run on a Windows box) this works :-
 
@@ -37,7 +40,7 @@ Then switch to that directory and type “npm install”, This should create a f
 To install rheos using `npm`: 
 
 ```
-npm install rheos -g
+npm install rheos 
 ```
 
 ## Initial Set Up

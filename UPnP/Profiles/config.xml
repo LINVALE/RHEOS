@@ -142,13 +142,4 @@
     <mode>flc:0,r:48000,s:16</mode>
     <sample_rate>48000</sample_rate>
   </device>
-  <device>
-    <udn>uuid:1226abeb-d675-171d-0080-0005cd52b5dc</udn>
-    <name>Soundbar</name>
-    <friendly_name>Soundbar</friendly_name>
-    <mac>bb:bb:9b:67:09:6f</mac>
-    <enabled>1</enabled>
-    <mode>flc:0,r:48000,s:16</mode>
-    <sample_rate>48000</sample_rate>
-  </device>
 </squeeze2upnp>
