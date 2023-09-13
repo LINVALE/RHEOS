@@ -409,6 +409,7 @@ async function start_roon() {
 	svc_volume_control = new RoonApiVolumeControl(roon)
 	const def = JSON.parse(await fs.readFile('./default_settings.json','utf-8'))
 	my_settings = roon.load_config("settings")|| def.settings || {}
+	my_settings.log_limit || (my_settings.log_limit = 1)
 	my_players = roon.load_config("players") || []
 	my_players.forEach(player => my_settings[player.pid]=player.resolution)
 	avr_control = my_settings.avr_control
@@ -450,17 +451,7 @@ async function start_roon() {
 						rheos_players.get(Number(found_player[0])).resolution = found_player[1]
 						await build_devices(found_player).catch(()=>{console.error("Failed to build devices")})
 					}
-				}
-			
-			/** 
-				 if (settings.values.fixed_control===true && Object.keys(fixed_group_control).length === 0){
-					create_fixed_group_control()
-				 } 
-				 else if (settings.values.fixed_control===false && fixed_group_control.update_state){ 
-					fixed_group_control= {}
-					fixed_control = false
-				 }			
-			*/	 
+				}	 
 				 let rebuild = Object.keys(l.values).filter(x => ! Number(x)).map(x => !x.isNumber && l.values[x] == my_settings[x])
 			     my_settings = l.values
 			if (rebuild.findIndex(x => (x == false))>-1)
@@ -923,23 +914,23 @@ async function update_zones(zones){
 								.map(player => player.pid))	
 							update_status(false,false)			
 						}
-				} else if (z.state == "paused"  && old_zone?.state == "playing" ){
-					let fixed = rheos_zones.get(z.zone_id).fixed
-					svc_transport.ungroup_outputs(z.outputs)
-					await group_enqueue([fixed.gid])
-				}
-			} 
+					} else if (z.state == "paused"  && old_zone?.state == "playing" ){
+						let fixed = rheos_zones.get(z.zone_id).fixed
+						svc_transport.ungroup_outputs(z.outputs)
+						await group_enqueue([fixed.gid])
+					}
+				} 
 				const group = (rheos_groups.get(get_pid(z.outputs[0]?.source_controls[0]?.display_name)))
 				const old_roon_group = old_zone?.outputs?.map(output => get_pid(output.source_controls[0].display_name))
 				const new_roon_group = (z.outputs.map(output => get_pid(output.source_controls[0].display_name)))
 				const heos_group = group?.players.map(player => player.pid);
-				if ((sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
+				if (z.outputs.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
 					await group_enqueue(new_roon_group)
 				}	 
-			rheos_zones.set(z.zone_id,z)
-	        fixed && z.outputs.length == 1 || z.state == 'paused' || z.state == 'stopped' || (old_zone?.now_playing?.one_line?.line1 == z?.now_playing?.one_line?.line1 ) ||  console.error(new Date().toLocaleString(), z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
+				rheos_zones.set(z.zone_id,z)
+	        	fixed && z.outputs.length == 1 || z.state == 'paused' || z.state == 'stopped' || (old_zone?.now_playing?.one_line?.line1 == z?.now_playing?.one_line?.line1 ) ||  console.error(new Date().toLocaleString(), z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
 			} else { 
-				const zone =(rheos_zones.get(z.zone_id))
+				const zone =(rheos_zones.get(z))
 				log && zone && console.log("DELETING ZONE",zone.display_name)
 				if (zone?.outputs.filter(op => get_pid(op.source_controls[0].display_name)).length >1){
 					const lead_player_pid = get_pid(zone.outputs[0]?.source_controls[0]?.display_name)
@@ -1165,10 +1156,10 @@ async function group_dequeue(timer = 30000) {
 	}
 	try {
 		rheos.working = true
-		if (![...rheos_groups.values()].includes( sum_array(item))){
+		//if (![...rheos_groups.values()].includes( sum_array(item))){
 			log && console.log("SETTING GROUP",item)
 			await heos_command("group", "set_group", { pid: item?.group?.toString() },timer).catch((err) => {item.reject(err); rheos.working = false; group_dequeue() })
-		}
+		//}
 		rheos.working = false 
 		group_buffer.shift()
 		item.resolve()
