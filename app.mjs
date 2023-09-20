@@ -406,8 +406,8 @@ async function start_roon() {
 	my_settings.log_limit || (my_settings.log_limit = 1)
 	my_players = roon.load_config("players") || []
 	my_players.forEach(player => my_settings[player.pid]=player.resolution)
-	avr_control = my_settings.avr_control
-	fixed_control = my_settings.fixed_control
+	avr_control = my_settings.avr_control || false
+	fixed_control = my_settings.fixed_control || false
 	if (fixed_control){
 		let  fg = roon.load_config("fixed_groups") || []
 		my_fixed_groups = fg
@@ -930,7 +930,6 @@ async function update_zones(zones){
 	        	fixed && z.outputs.length == 1 || z.state == 'paused' || z.state == 'stopped' || (old_zone?.now_playing?.one_line?.line1 == z?.now_playing?.one_line?.line1 ) ||  console.error(new Date().toLocaleString(), z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
 			} else { 
 				const zone =(rheos_zones.get(z))
-				log && zone && console.log("DELETING ZONE",zone.display_name)
 				if (zone?.outputs.filter(op => get_pid(op.source_controls[0].display_name)).length >1){
 					const lead_player_pid = get_pid(zone.outputs[0]?.source_controls[0]?.display_name)
 					const group = (rheos_groups.get(lead_player_pid))
@@ -1095,36 +1094,29 @@ async function choose_binary(name, fixed = false) {
 	if (os.platform() == 'linux') {
 		try {
 		if (os.arch() === 'arm'){
-			log && console.error("LOADING armv6 FOR", name)
 			await fs.chmod(fixed ? './UPnP/Bin/squeezelite/squeezelite-armv6hf':'./UPnP/Bin/RHEOS-armv6', 0o555)
 			return (fixed ? './UPnP/Bin/squeezelite/squeezelite-armv6hf' :'./UPnP/Bin/RHEOS-armv6')
 		} else if (os.arch() === 'arm64'){
-			log && console.error("LOADING arm FOR",name)
 			await fs.chmod(fixed ? './UPnP/Bin/squeezelite/squeezelite-arm64':'./UPnP/Bin/RHEOS-arm', 0o555)
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-armv64':'./UPnP/Bin/RHEOS-arm') 
 		} else if (os.arch() === 'x64'){ 
-			log && console.error("LOADING x64 FOR",name)
 			await fs.chmod(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64', 0o555)
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64')
 		} else if (os.arch() === 'ia32'){
-			log && console.error("LOADING ia32 FOR",name)
 			await fs.chmod(fixed ?'./UPnP/Bin/squeezelite/squeezelite-i386':'./UPnP/Bin/RHEOS-x86', 0o555)
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-i386' :'./UPnP/Bin/RHEOS-x86')
 		}
 		} catch {
-			console.error("⚠ UNABLE TO LOAD LINUX BINARIES - ABORTING")
+			console.error("⚠ UNABLE TO LOAD LINUX BINARIES - ABORTING",os)
 			process.exit(0)
 		}
 	}
 	else if (os.platform() == 'win32') {
-		log && console.error("LOADING WINDOWS EXE FOR",name)
 		return(fixed ? './UPnP/Bin/squeezelite/squeezelite-x64.exe' :'./UPnP/Bin/RHEOS2UPNP.exe')
 	} 
 	else if (os.platform() == 'darwin') {
-		log && console.error("LOADING MAC OS FOR" ,name)
 		try {
 			await fs.chmod(fixed ? "" :'./UPnP/Bin/RHEOS-macos-x86_64-static', 0o555)
-			log && console.error("LOADING MAC BINARIES x86_64")
 			return(fixed ? "" :'./UPnP/Bin/RHEOS-macos-x86_64-static')} 
 		catch {
           	console.error("⚠ UNABLE TO LOAD MAC BINARIES - ABORTING")
@@ -1155,7 +1147,6 @@ async function group_dequeue(timer = 30000) {
 	}
 	try {
 		rheos.working = true
-		log && console.log("SETTING GROUP",item)
 		await heos_command("group", "set_group", { pid: item?.group?.toString() },timer).catch((err) => {item.reject(err); rheos.working = false; group_dequeue() })
 		rheos.working = false 
 		group_buffer.shift()
@@ -1250,11 +1241,7 @@ async function connect_roon() {
 							await get_player(z.display_name) &&	rheos_zones.set(z.zone_id, z)  
 						}
 					case "Changed" : {	
-						if (log){		
-							Array.isArray(data.zones_added) && console.log("ZONES ADDED", data.zones_added.map( z=>z.display_name))
-							Array.isArray(data.zones_removed) && console.log("ZONES REMOVED", data.zones_removed.map( z=> rheos_zones?.get(z)?.display_name || z))
-							Array.isArray(data.zones_changed) 
-						}
+
 						Array.isArray(data.zones_added) && await update_zones(data.zones_added);
 						Array.isArray(data.zones_changed) && await update_zones(data.zones_changed);
 						Array.isArray(data.zones_removed) && await update_zones(data.zones_removed);	
@@ -1333,7 +1320,7 @@ function makelayout(my_settings) {
 		{ type: "string", title: "Roon Extension Host IP Address", maxlength: 15, setting: "host_ip" }
 	)
 	l.layout.push(
-		{ title: "Enable AVR Zone Control ", type: "dropdown", setting: 'avr_control', values : [{title: "ON", value : 1},{title : "OFF", value :0}]}
+		{ title: "Enable AVR Zone Control ", type: "dropdown", setting: 'avr_control', values : [{title: "ON", value : true},{title : "OFF", value :false}]}
 		
 	)
 	l.layout.push(
