@@ -835,12 +835,12 @@ async function update_outputs(outputs){
 				let avr = await get_player(name.split(" ")[0].trim())
 				avr && (avr.type = "AVR")
 				if (name.includes(" Zone 1")) {
-					try {(op.volume.value !== old_op?.volume.value) && avr?.ip && await control_avr(avr.ip,"MV"+op.volume.value)}catch {log && console.error("⚠ NO RESPONSE AVR Z1 VOL")}
-					try {(op.volume.is_muted !== old_op?.volume.is_muted) && avr?.ip && await control_avr(avr.ip,"MU"+ (op.volume.is_muted ? "ON" : "OFF"))} catch {log && console.error("⚠ NO RESPONSE AVR Z1 MUTE")}
+					try {(op.volume.value !== old_op?.volume.value) && avr?.ip && await control_avr(avr.ip,"MV"+op.volume.value)}catch {}
+					try {(op.volume.is_muted !== old_op?.volume.is_muted) && avr?.ip && await control_avr(avr.ip,"MU"+ (op.volume.is_muted ? "ON" : "OFF"))} catch {}
 				}	
 				if (name.includes(" Zone 2")) {
-					try {(op.volume.value !== old_op?.volume.value) &&	avr?.ip && await control_avr(avr.ip,"Z2"+op.volume.value)}catch{log && console.error("⚠ NO RESPONSE AVR Z2 VOL")}
-					try {(op.volume.is_muted !== old_op?.volume.is_muted) && avr?.ip && await control_avr(avr.ip,"Z2MU"+ (op.volume.is_muted ? "ON" : "OFF"))} catch {log && console.error("⚠ NO RESPONSE AVR Z2 MUTE")}
+					try {(op.volume.value !== old_op?.volume.value) &&	avr?.ip && await control_avr(avr.ip,"Z2"+op.volume.value)}catch{}
+					try {(op.volume.is_muted !== old_op?.volume.is_muted) && avr?.ip && await control_avr(avr.ip,"Z2MU"+ (op.volume.is_muted ? "ON" : "OFF"))} catch {}
 				}
 			} else { 
 				const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
