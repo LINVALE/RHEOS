@@ -837,7 +837,7 @@ async function update_outputs(outputs){
 			} else	if (op.type == "AVR"){
 				const name = op.source_controls[0].display_name
 				let avr = await get_player(name.split(" ")[0].trim())
-				avr.type = "AVR"
+				avr && (avr.type = "AVR")
 				if (name.includes(" Zone 1")) {
 					try {(op.volume.value !== old_op?.volume.value) && avr?.ip && await control_avr(avr.ip,"MV"+op.volume.value)}catch {log && console.error("⚠ NO RESPONSE AVR Z1 VOL")}
 					try {(op.volume.is_muted !== old_op?.volume.is_muted) && avr?.ip && await control_avr(avr.ip,"MU"+ (op.volume.is_muted ? "ON" : "OFF"))} catch {log && console.error("⚠ NO RESPONSE AVR Z1 MUTE")}
