@@ -347,7 +347,6 @@ async function create_fixed_group(group){
 	const fixed = Math.abs(group[1].sum_group).toString(16);
 	if (rheos.processes[fixed]?.pid){
 		try { 
-			console.log("KILLING",rheos.processes[fixed].spawnargs)
 			process.kill( rheos.processes[fixed]?.pid,'SIGKILL') 
 			fixed_groups.delete(group[0])
 			await get_all_groups()
@@ -553,11 +552,11 @@ async function connect_avr(player){
 			player[1].ZM = await control_avr(player[1].ip,"ZM?").catch(err => console.error(player ? "NOT AN AVR : " + player[1].model : "ERROR GETTING MAIN STATE" + err))
 			player[1].SI = await control_avr(player[1].ip,"SI?").catch(err => console.error(player ? "NOT AN AVR : " + player[1].model : "ERROR GETTING MAIN STATE" + err))
 			avr_control = 2
-			await create_avr_zones(player[1],1,false).catch(()=>{console.log("Create Zone 1 for ",player[1].name)})
-			await create_avr_zones(player[1],2,false).catch(()=>{console.log("Create Zone 2 for ",player[1].name)})
+			await create_avr_zones(player[1],1,false).catch(()=>{})
+			await create_avr_zones(player[1],2,false).catch(()=>{})
 			
-			await update_zone_controls(player[1]).catch(()=>{console.log("Update Zone controls for ",player[1].name)})
-			await create_avr_controls(player[1]).catch(()=>{console.log("Create AVR controls for ",player[1].name)})
+			await update_zone_controls(player[1]).catch(()=>{})
+			await create_avr_controls(player[1]).catch(()=>{})
             avr_control = 1
 			
 		} else { 
@@ -784,8 +783,7 @@ async function create_avr_zones(player,i,kill = false){
 			const zone = svc_transport.zone_by_output_id(player.output)
 			const op = zone.outputs.map(o=> o).filter(o => o.source_controls[0].display_name.includes(i == 1? " Zone 1" : " Zone 2"))
 			
-			op.length && svc_transport.ungroup_outputs(op, (op)=>{console.log("UNGROUPING AVR ZONE 1",player.name,op)
-			})
+			op.length && svc_transport.ungroup_outputs(op)
 		} 
 		if (player && kill == false){
 			const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
@@ -808,7 +806,7 @@ async function kill_avr_output(name){
 	try {
 		p.pid && process.kill(p.pid,'SIGKILL')	
 	}
-	catch {log && console.error(name,"ALREADY OFF")	}
+	catch {	}
 }
 async function update_outputs(outputs){
 	return new Promise(async function (resolve) {
@@ -879,7 +877,7 @@ async function update_zones(zones){
 								await control_avr(player.ip,standing_by[0].source_controls[0].display_name.includes(" Zone 1" )? "ZMOFF" : "Z2OFF").catch(()=> {})	
 								avr_control === 2 && avr_zone_controls[pid] && avr_zone_controls[pid]?.update_state({supports_standby: true, status :"deselected" })
 							} catch {
-								log && console.error(player.ip,standing_by[0].display_name,"ALREADY OFF")
+								
 							}
 						}
 					}	
