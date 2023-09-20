@@ -172,7 +172,7 @@ async function discover_devices() {
 	return new Promise(async function (resolve) {
 		const players = await get_players().catch(err => console.log(err))
 			try {
-				    log && console.log('READING PROFILES CONFIG')
+				    log && console.log('READING PROFILES')
 					update_status("READING PROFILES",false)
 					const data = await fs.readFile('./UPnP/Profiles/config.xml', 'utf8')
 					const slim_devices = await parseStringPromise(data)
@@ -188,7 +188,7 @@ async function discover_devices() {
 					throw error
 				}
 			} catch {
-				log && console.error("UPDATING CONFIG FILE")
+				log && console.error("UPDATING CONFIG")
 				update_status("PLAYERS HAVE CHANGED - UPDATING CONFIGURATION",false)
 				await create_root_xml().catch(err => {
 					resolve(discover_devices(err))
@@ -207,7 +207,7 @@ async function create_root_xml() {
 	})
 	return new Promise(async function (resolve,reject) {	
 		try {
-			log && console.error("CREATING CONFIG FILE FROM IP", system_info[0])
+			log && console.error("CREATING CONFIG FROM IP", system_info[0])
 			rheos.mode = true
 			let app = await choose_binary(system_info)	
 			try {
@@ -337,7 +337,6 @@ async function load_fixed_groups(){
 	fixed_groups.size &&
 	[...fixed_groups.entries()].forEach( async fg => {
 		if (fg && my_settings[fg[0]] && fg[1]){
-			log && console.log("CREATING FIXED GROUP ON LOAD",fg)
 			create_fixed_group(fg).catch(()=> {})
 		}
 	})
@@ -383,7 +382,6 @@ async function create_fixed_group_control(){
 	Object.keys(fixed_group_control).length === 0 && (fixed_group_control = svc_source_control.new_device(controller))
 }
 async function remove_fixed_group(g) {
-	log && console.log("REMOVING FIXED GROUP",g)
 	const pid = (rheos.processes[Math.abs(g).toString(16)]?.pid)
 	try { 
 		console.log("PID",pid,"G",g,"FIX",Math.abs(g).toString(16))
@@ -849,7 +847,6 @@ async function update_outputs(outputs){
 			} else { 
 				const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
 				if (group) {
-					log && console.log("GROUP FOUND",old_op?.volume.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 					group?.gid && await update_group_volume(op,group,old_op?.volume.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 				}
 			}
