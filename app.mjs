@@ -899,11 +899,14 @@ async function update_zones(zones){
 					zone_outputs = zone_outputs.filter(Boolean)
 					if ((z.state == "playing" && z.now_playing) && z.outputs.length == 1 ){
 						svc_transport.transfer_zone( z,svc_transport.zone_by_output_id(zone_outputs[0].output_id))
+						svc_transport.control(svc_transport.zone_by_output_id(zone_outputs[0].output_id),"play")
 						group_pending.length = 0
 						group_pending.push([z,zone_outputs[0].output_id])
 					}
 					if (group_pending.length && z.outputs.length == 1 && z.now_playing && z.now_playing?.one_line.line1 == group_pending[0][0]?.now_playing?.one_line.line1 ) {
 						svc_transport.group_outputs(zone_outputs)
+						svc_transport.control(svc_transport.zone_by_output_id(zone_outputs[0].output_id),"play")
+						//svc_transport.control(z,"play")
 					}
 					if (group_pending.length && (z.outputs[0].output_id == zone_outputs[0].output_id )&& (z.outputs.length == zone_outputs.length ) ){
                         if (z?.is_play_allowed && z?.state !== "playing" && z?.state !== "loading") {
