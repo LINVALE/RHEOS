@@ -12,7 +12,7 @@
         "keep_alive": 0,
         "next_delay": 15,
         "send_coverart": false,
-        "send_metadata": false,
+        "send_metadata": true,
         "flow": 0,
         "max_safe_vol" : 70, 
         "avr_control": false,
