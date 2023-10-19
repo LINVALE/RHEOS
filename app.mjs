@@ -534,7 +534,7 @@ async function create_zone_controls(err,count=0) {
 		let failed_connections= []
 		for await (let player of rheos_players){
 			if ((!player[1].model.includes("HEOS") && player[1].type == "") || player[1].type == "AVR" ){
-				err = await connect_avr(player[0]).catch(err => console.log((err,"⚠  ERROR CONNECTING AVR",player.name)))
+				err = await connect_avr(player[0]).catch(err => console.log(err,"⚠  ERROR CONNECTING AVR",player.name))
 				if (err) {console.error("⚠ ERROR FAILED CONNECTION FOR",player[1].name),failed_connections.push[player[1]]}
 			}
 		} 
@@ -891,10 +891,10 @@ async function update_volume(op,player){
 	let {is_muted,value} = op.volume
 	let {mute,level} = player.volume 
 	if ((mute !== (is_muted ? "on" : "off"))) {
-		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on" : "off"}).catch(err => console.error(err))
+		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on" : "off"}).catch(err => console.error(err))
 	}
 	if (player.type !== "AVR" && (value || value === 0) && level !== value) {
-		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(err))
+		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(err))
 	}
 	(player.output = op.output_id) && (player.zone = op.zone_id)
 }
