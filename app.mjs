@@ -791,7 +791,7 @@ async function update_outputs(outputs,added,zone,avr){
 				if  (typeof(player) == "object"){	 
 					player.output = op.output_id
 					op.player = player
-					player.type !=="AVR" && (op.volume?.value !== old_op?.volume ?.value )&& await update_volume(op,player)
+					player.type !=="AVR" && (op.volume?.value !== old_op?.volume ?.value )&& update_volume(op,player)
 					rheos_outputs.set(op.output_id,op)
 				}			
 				if (fixed_groups.size && op?.output_id){ 
