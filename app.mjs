@@ -67,6 +67,7 @@ async function start_up(){
 	log && console.log("CREATING FIXED GROUPS")
 	create_fixed_group_control()
 	fixed_control && await load_fixed_groups().catch(err => console.error("⚠ Error Loading Fixed Groups",(err) => {throw error(err)}))
+	
 	monitor()
 	setTimeout(() => {start_listening().catch(err => console.error("⚠ Error Starting Listening",err => {throw error(err)}))},10000)
 }
@@ -534,8 +535,8 @@ async function create_zone_controls(err,count=0) {
 		let failed_connections= []
 		for await (let player of rheos_players){
 			if ((!player[1].model.includes("HEOS") && player[1].type == "") || player[1].type == "AVR" ){
-				err = await connect_avr(player[0]).catch(err => console.log(err,"⚠  ERROR CONNECTING AVR",player.name))
-				if (err) {console.error("⚠ ERROR FAILED CONNECTION FOR",player[1].name),failed_connections.push[player[1]]}
+				err = connect_avr(player[0]).catch(err => console.log(err,"⚠  ERROR CONNECTING AVR",player.name))
+				if (err) {failed_connections.push[player[1]]}
 			}
 		} 
 		let i = 0
@@ -564,7 +565,7 @@ async function create_zone_controls(err,count=0) {
 async function connect_avr(pid){
 	let avr = rheos_players.get(pid)  
 		avr.Z2 = await control_avr(avr.ip,"Z2?").catch((err)=>{console.error(err)})
-		if (avr.Z2.length >1){
+		if (Array.isArray (avr.Z2) && avr.Z2.length >1){
 			await create_avr_controls(avr).catch((err)=>{console.log(err)})
 			avr.type = "AVR"
 			avr.status = []							    
@@ -663,7 +664,10 @@ async function create_avr_controls(player){
 				avr_zone_controls[controller.state.display_name] = avr_zone_controls[(Math.abs(player.pid)+index)]
 				avr_zone_controls[(Math.abs(player.pid)+index)].current_state = controller.state
 				await create_avr_zone(player,index)
-			} 	
+			} else {
+				console.log(avr_zone_controls[(Math.abs(player.pid)+index)])
+
+			}
 		}
 			let volume_control = {
 				state: {
@@ -889,7 +893,7 @@ async function update_zones(zones,added){
 }
 async function update_volume(op,player){
 	let {is_muted,value} = op.volume
-	let {mute,level} = player.volume 
+	let {mute = "off",level =0} = player.volume 
 	if ((mute !== (is_muted ? "on" : "off"))) {
 		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on" : "off"}).catch(err => console.error(err))
 	}
@@ -1147,9 +1151,9 @@ async function connect_roon() {
 					    console.error('⚠',"NETWORK ERROR",cmd)
 					break	
 					case "Subscribed" : 
-						for (const o of data.outputs) {
+						for await (const o of data.outputs) {
 							if (Array.isArray(o?.source_controls)){
-								Array.isArray(data.outputs) && await update_outputs(data.outputs,true)
+								Array.isArray(data.outputs) &&  update_outputs(data.outputs,true)
 								let player = await get_player_by_name(o?.source_controls[0]?.display_name);
 								player && (player.output = o.output_id)
 								o.player = player
@@ -1161,7 +1165,7 @@ async function connect_roon() {
 					case "Changed" : {
 						
 						Array.isArray(data.outputs_changed) && await update_outputs(data.outputs_changed,false)
-						Array.isArray(data.outputs_added) && await update_outputs(data.outputs_added,true)
+						Array.isArray(data.outputs_added) &&  await update_outputs(data.outputs_added,true)
 						if (Array.isArray(data.outputs_removed)) {
 							await update_outputs(data.outputs_removed,false)
 						}
@@ -1175,19 +1179,19 @@ async function connect_roon() {
 			svc_transport.subscribe_zones(async function (cmd, data) {
 				switch(cmd){
 					case "Subscribed" : 
-						for (const z of data.zones) {
-							await get_player_by_name(z.display_name) &&	rheos_zones.set(z.zone_id, z)  
+						for await (const z of data.zones) {
+							 get_player_by_name(z.display_name) &&	rheos_zones.set(z.zone_id, z)  
 						}
 						Array.isArray(data.zones_subscribed) && await update_zones(data.zones_subscribed,true)
 					case "Changed" : {	
 						if (Array.isArray(data.zones_added)){
-							for (const z of data.zones_added) {
+							for await (const z of data.zones_added) {
 								await get_player_by_name(z.display_name) &&	rheos_zones.set(z.zone_id, z)  
 							}	
 						}
-							Array.isArray(data.zones_added) && await update_zones(data.zones_added,true);
-							Array.isArray(data.zones_changed) && await update_zones(data.zones_changed);
-							Array.isArray(data.zones_removed) && await update_zones(data.zones_removed);	
+							Array.isArray(data.zones_added) && update_zones(data.zones_added,true);
+							Array.isArray(data.zones_changed) && update_zones(data.zones_changed);
+							Array.isArray(data.zones_removed) && update_zones(data.zones_removed);	
 					}	
 					break
 					case "NetworkError" : console.error('⚠',"SUBSCRIBED ZONE ERROR",cmd)
@@ -1250,14 +1254,14 @@ function makelayout(settings) {
 	l.layout.push({ title: "Enable Fixed HEOS Groups ", type: "dropdown", setting: 'fixed_control', values : [{title: "ON", value : true},{title : "OFF", value :false}]})
 	if (players.length) {
 		let _players_status = { type: "group", title: "PLAYERS", subtitle: "Set player resolution", collapsable: true, items: [] }
-		players.forEach((player) => {
+		for (let player of players){
 			if (player) {
 				_players_status.items.push({title: ('◉ ') + player.name.toUpperCase(),type: "dropdown",
 					values: [{ title: "Hi-Resolution", value: "HR" }, { title: "CD Quality", value: "CD" },{ title: "Pass Through", value: "THRU" }],
 					setting: player.pid.toString()
 				})
 			}
-		})
+		}
 		l.layout.push(_players_status)
 	}
 	if (mysettings.avr_control){
