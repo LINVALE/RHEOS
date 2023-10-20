@@ -1,4 +1,4 @@
-const version = "0.8.0-0"
+const version = "0.8.0-1"
 
 "use-strict"
 import RoonApi from "node-roon-api"
@@ -763,16 +763,29 @@ async function kill_avr_output(name){
 		   return
 	}
 }
-async function update_outputs(outputs,added,zone,avr){
+async function update_outputs(outputs,added,zone,avr,player){
 	return new Promise(async function (resolve) {
 		for (let op of outputs) {
-			if (typeof(op) === 'object'){
+			if (Array.isArray(op?.source_controls)){
 				op.source_controls === false && console.error("⚠ NO SOURCE CONTROLS",op)
 				const op_name = get_output_name(op) 
 				const old_op = rheos_outputs.get(op.output_id)
-				const player = (op_name && await get_player_by_name(op_name.split("​",1)[0])) || undefined
+				if (op_name.includes("​")){
+					player = (op_name && await get_player_by_name(op_name.split("​",1)[0])) || undefined
+				} else {
+					player = (op_name && await get_player_by_name(op_name)) || undefined
+				}
+				
 				avr = player
-				if (player?.output && player.type == "AVR") {
+				if  (typeof(player) == "object" && (op.volume?.value !== old_op?.volume?.value) && player.type !=="AVR"){
+				    await update_volume(op,player)
+					player.output = op.output_id
+					op.player = player
+					rheos_outputs.set(op.output_id,op)
+				}
+				
+				
+				else if (player?.output && player.type == "AVR") {
 					zone = (svc_transport.zone_by_output_id(player.output))
 					if (op_name && op_name.includes('​')){
 						const control  = avr_zone_controls[get_output_name(op)]
@@ -792,16 +805,11 @@ async function update_outputs(outputs,added,zone,avr){
 						rheos_outputs.set(op.output_id,op)
 					}
 				}
-				if  (typeof(player) == "object"){	 
-					player.output = op.output_id
-					op.player = player
-					player.type !=="AVR" && (op.volume?.value !== old_op?.volume ?.value )&& update_volume(op,player)
-					rheos_outputs.set(op.output_id,op)
-				}			
-				if (fixed_groups.size && op?.output_id){ 
+			
+				else if (fixed_groups.size && op?.output_id){ 
 					const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
 					if (group) {
-						group?.gid && await update_group_volume(op,group,old_op?.volume.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
+						group?.gid && await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 					}
 					rheos_outputs.set(op.output_id,op)
 				}
@@ -1136,7 +1144,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.0-0",
+		display_version: "0.8.0-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1153,7 +1161,7 @@ async function connect_roon() {
 					case "Subscribed" : 
 						for await (const o of data.outputs) {
 							if (Array.isArray(o?.source_controls)){
-								Array.isArray(data.outputs) &&  update_outputs(data.outputs,true)
+								Array.isArray(data.outputs) &&  await update_outputs(data.outputs,true)
 								let player = await get_player_by_name(o?.source_controls[0]?.display_name);
 								player && (player.output = o.output_id)
 								o.player = player
