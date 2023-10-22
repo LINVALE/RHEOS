@@ -1,4 +1,4 @@
-const version = "0.8.1-0"
+const version = "0.8.1-1"
 
 "use-strict"
 import RoonApi from "node-roon-api"
@@ -36,6 +36,7 @@ const rheos_outputs = new Map()
 const rheos_groups = new Map()
 const group_pending =[]
 const avr_zone_controls = {}
+const avr_volume_controls = {}
 const rheos_connect = RheosConnect.Telnet
 const builder = new xml2js.Builder({ async: true })
 const devices = {}
@@ -137,7 +138,7 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid)
-			if (player?.volume && (mute != player.volume.mute)) {
+			if (player?.output && (mute != player.volume.mute)) {
 				player.volume.mute = mute
 				await svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))
 			}
@@ -246,7 +247,7 @@ async function start_heos(counter = 0) {
 				player.resolution = myplayers.find(p => p.pid == player.pid)?.resolution || "CD"
 				player.volume = {}
 				myplayers.find(p => p.pid == player.pid)?.type === "AVR" || (player.type = await connect_avr(player.pid))
-				if (player.type){ 
+				if (player.type === "AVR"){ 
 					player.sound_mode = myplayers.find(p => p.pid == player.pid)?.sound_mode || "MSUSE LAST SELECTED"
 				}
 				player.pid && rheos_players.set(player.pid, player)
@@ -260,7 +261,7 @@ async function start_heos(counter = 0) {
 			})
 			console.table(players, ["name", "pid", "model", "ip", "resolution","network"])
 			roon.save_config("settings",mysettings);
-			roon.save_config("players",myplayers);
+			roon.save_config("players",players);
 			resolve	(players)
 		} else {
 			reject (start_heos(counter ++))
@@ -412,7 +413,7 @@ async function start_roon() {
 	myplayers = roon.load_config("players") || []
 	mysettings.clear_settings = false	
 	fixed_control = mysettings.fixed_control
-    myplayers.forEach(p => mysettings[p.pid] = p.resolution)
+    //myplayers.forEach(p => mysettings[p.pid] = p.resolution)
 	avr_control = mysettings.avr_control || false
 	roon.start_discovery()
 	if (fixed_control){
@@ -676,23 +677,22 @@ async function create_avr_controls(player){
 		}
 			let volume_control = {
 				state: {
-					display_name: player.name, 
+					display_name: player.name,
 					volume_type:  "incremental",
 					player : player
 				},
 				set_volume: async function (req, mode, value) {
-					await update_avr_volume(this.state.player,value)
+					await update_avr_volume(this.state.player,mode,value)
 					req.send_complete("Success");
 				},
-				set_mute: async function (req, action) {
-					if (action == 'toggle'){	
-					let z = svc_transport.zone_by_output_id(player.output)
-				}
-				req.send_complete("Success");
+				set_mute: async function (req, mode	) {
+					await update_avr_volume(this.state.player,mode)
+				   	req.send_complete("Success");
 			}
 		}
-		avr_zone_controls[Math.abs(player.pid)] || (avr_zone_controls[Math.abs(player.pid)] = svc_volume_control.new_device(volume_control))
-		avr_zone_controls[player.name] = avr_zone_controls[Math.abs(player.pid)] 
+		//avr_volume_controls[Math.abs(player.pid)] ||
+		avr_volume_controls[player.pid] = 	svc_volume_control.new_device(volume_control)
+		//avr_volume_controls[player.name] = avr_volume_controls[Math.abs(player.pid)] 
 		let display_name = "♫ Last Selected"
 		let sm = player.sound_mode
 		if (sm && sm.includes("LAST")){
@@ -787,11 +787,13 @@ async function update_outputs(outputs,added,zone,avr,player){
 					
 				}
 				
-				avr = player
-				if  (typeof(player) == "object" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value))){
+				
+				if  (typeof(player) == "object" && player.type !== "AVR" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value))){
+					console.log('updating volume',player.name,op.volume)
 				    await update_volume(op,player)
 				}
 				if (player?.type === "AVR") {
+				
 					zone = (svc_transport.zone_by_output_id(player.output))
 					if (op_name && op_name.includes('​')){
 						const control  = avr_zone_controls[get_output_name(op)]
@@ -803,12 +805,15 @@ async function update_outputs(outputs,added,zone,avr,player){
 							control.state.status =  "deselected"
 						}
 						if (op.volume.value !== old_op?.volume?.value) {
-							avr?.ip && control_avr(avr.ip,(op_name.includes("Main")? "MV" : "Z2")+op.volume.value)
+							player?.ip && control_avr(player.ip,(op_name.includes("Main")? "MV" : "Z2")+op.volume.value)
 						}
 						if (op.volume.is_muted !== old_op?.volume?.is_muted) {
-							avr?.ip && control_avr(avr.ip,(avr.ip,(op_name.includes("Main")? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF")))
+							player?.ip && control_avr(player.ip,(op_name.includes("Main")? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF"))
 						}
 						rheos_outputs.set(op.output_id,op)
+					} else {
+						typeof(player) == "object" && (op.volume && old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value)) &&
+						console.log(player.name, "MAIN VOLUME CHANGED", op.volume)
 					}
 				}
 			
@@ -905,21 +910,40 @@ async function update_zones(zones,added){
 async function update_volume(op,player){
 	let {is_muted,value} = op.volume
 	let {mute = "off",level =0} = player.volume 
-	if ((mute !== (is_muted ? "on" : "off"))) {
+	if (player.type !== "AVR" && (mute !== (is_muted ? "on" : "off"))) {
+
+		
 		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on" : "off"}).catch(err => console.error(err))
 	}
 	if (player.type !== "AVR" && (value || value === 0) && level !== value) {
+
 		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(err))
+	}
+	if (player.type == "AVR"){
+
+		console.log(player.volume)
+		console.log(op.volume)
+		svc_transport(player.output,is_muted ? "unmute" : "mute")
 	}
 	(player.output = op.output_id) && (player.zone = op.zone_id)
 }
-async function update_avr_volume(player,increment){
-	increment == 1 && await heos_command("player", "volume_up", { pid: player?.pid, step: 1 }).catch(err => console.error(err))
-	increment == -1 && await heos_command("player", "volume_down", { pid: player?.pid, step: 1 }).catch(err => console.error(err))
+async function update_avr_volume(player,mode,value){   
+	if (mode == 'relative'){
+		await heos_command("player", value == 1 ? "volume_up" : "volume_down", { pid: player?.pid, step: 1 }).catch(err => console.error(err))
+	} 
+	else if (mode == 'toggle'){
+		await heos_command("player", "toggle_mute",{ pid: player?.pid}).catch(err => console.error(err))
+        let zone = (svc_transport.zone_by_output_id(player.output))
+		for (let o of zone.outputs){
+            if (get_output_name(o).includes("​")){
+				svc_transport.mute(o,o.volume.is_muted ? 'unmute' : 'mute')
+			}
+		}	
+	} 
 }
 async function update_group_volume(op,group,vol,mute){
-	    vol && await heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(err))
-		mute && await heos_command("group", "set_mute", { gid: group.gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(err))
+	vol && await heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(err))
+	mute && await heos_command("group", "set_mute", { gid: group.gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(err))
 }
 async function heos_command(commandGroup, command, attributes = {}, timer = 3000) {
 	if (!rheos_connection) {
@@ -1147,7 +1171,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.1-0",
+		display_version: "0.8.1-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
