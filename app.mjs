@@ -1,4 +1,4 @@
-const version = "0.8.2-0"
+const version = "0.8.2-1"
 
 "use-strict"
 import RoonApi from "node-roon-api"
@@ -140,7 +140,7 @@ async function add_listeners() {
 				player.volume.mute = mute
 				svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
 			}
-			if (player?.output && player?.volume && level !== player?.volume?.level) {
+			if (!avr_control && player?.output && player?.volume && level !== player?.volume?.level) {
 				player.volume.level = level
 				await svc_transport.change_volume(player.output, 'absolute', level)
 			}
@@ -597,14 +597,14 @@ async function update_avr_status(avr){
 							if (!op){
 								control[1].update_state({supports_standby :false , status : "selected"})
 								control[1].state.status = "selected"
-								create_avr_zone(avr,index)		
+								await create_avr_zone(avr,index)		
 							}
 						} else if ((index === 0 && status.has("ZMON")) || (index ===1 && status.has("Z2ON") )) { 	
 							if (control[1].state.status !== "standby "){
 								control[1].update_state({supports_standby :false , status : "standby"})
 								control[1].output && svc_transport.standby(control[1].output,{control_key : '1'})
 								control[1].state.status = "standby"
-								if (!op) {create_avr_zone(avr,index)}
+								if (!op) {await create_avr_zone(avr,index)}
 							}	  	
 						} else if ((index == 0 && (status.has("ZMOFF") || !status.has("SINET"))) || (index ==1 && (status.has("Z2OFF") || !status.has("Z2NET")))) { 
 							control[1].update_state({supports_standby :true, status : "deselected"})
@@ -672,9 +672,9 @@ async function switch_zone_on(avr,index){
 	if (!avr.status ){return}
     const {status = []} = avr?.status
 	if (index == 0){
-		status.includes("ZMON") || (control_avr( avr.ip,  "ZMON" ))	
+		status.includes("ZMON") || await control_avr( avr.ip,  "ZMON" )	
 	} else {
-		status.includes("Z2ON") || control_avr( avr.ip,  "Z2ON" )	
+		status.includes("Z2ON") || await control_avr( avr.ip,  "Z2ON" )	
 	}
     return
 }
@@ -696,6 +696,7 @@ async function create_avr_controls(player){
 					convenience_switch : async function (req) {
 						if (avr_zone_controls[(Math.abs(player.pid)+index)].state.status === 'standby'){
 							await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" )	
+							//avr_zone_controls[(Math.abs(player.pid)+index)].update_state({status: "indeterminate"})
 							req.send_complete("Success")
 						} else {
 							req.send_complete("Success")	
@@ -703,6 +704,7 @@ async function create_avr_controls(player){
 					},  
 					standby:  async function (req) {
 						avr_zone_controls[(Math.abs(player.pid)+index)].state.status = "standby"
+						//avr_zone_controls[(Math.abs(player.pid)+index)].update_state({status: "indeterminate"})
 						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" )
 						req.send_complete("Success")
 					}
@@ -816,7 +818,7 @@ async function update_outputs(outputs,added,zone,avr,player){
 						rheos_outputs.set(op.output_id,op)
 					}
 				}
-				if  (typeof(player) == "object" && player.type !== "AVR" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value))){
+				if  (typeof(player) == "object" && player.type !== "AVR" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value)) || (op.volume?.is_muted !== old_op?.volume?.is_muted)){
 				    await update_volume(op,player)
 				}
 				if (player?.type === "AVR") {
@@ -942,9 +944,9 @@ async function update_zones(zones,added){
 }
 async function update_volume(op,player){
 	let {is_muted,value} = op.volume
-	let {mute = "off",level =0} = player.volume 
+	let {mute = "off",level =0} = player?.volume 
 	if (player.type !== "AVR" && (mute !== (is_muted ? "on" : "off"))) {
-		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on" : "off"}).catch(err => console.error(err))
+		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted == "on"}).catch(err => console.error(err))
 	}
 	if (player.type !== "AVR" && (value || value === 0) && level !== value) {
 		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(err))
@@ -1201,7 +1203,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.2-0",
+		display_version: "0.8.2-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
