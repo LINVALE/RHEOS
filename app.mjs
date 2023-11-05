@@ -1,4 +1,4 @@
-const version = "0.8.2-1"
+const version = "0.8.2-2"
 
 "use-strict"
 import RoonApi from "node-roon-api"
@@ -96,7 +96,7 @@ async function add_listeners() {
 			if (hadError) await start_up().catch(err => { console.error(err) })
 		})
 		.onError((err) => console.error("⚠ HEOS REPORTS ERROR", err))
-		.on({ commandGroup: "event", command: "groups_changed" }, async (pending,pending_zone) => {
+		.on({ commandGroup: "event", command: "groups_changed" }, async (res,pending,pending_zone) => {
 			await update_heos_groups().catch(err => console.error(err))
 			if (group_pending.length){
 				pending_zone = svc_transport.zone_by_output_id(group_pending[0][1])
@@ -106,25 +106,24 @@ async function add_listeners() {
 				if (pending == group.sum_group){
 					svc_transport.control(pending_zone,'play')
 				}
-					const players =	group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} )	
-					const zone = rheos_zones?.get(rheos_players.get(group.gid)?.zone);
-					const new_outputs= players?.map(player => rheos_players.get(player.pid)?.output).filter(Boolean) || []
-					const old_outputs = zone?.outputs.map(output => output?.output_id) || []
-					if (get_zone_group_value(zone) !== get_heos_group_value(group)) {
-						if (new_outputs?.length >1 && new_outputs?.length > old_outputs?.length) {
-							svc_transport.group_outputs(new_outputs)
-						}
-						else {
-							let removed_outputs = old_outputs?.filter(op => !new_outputs?.includes(op))
-							svc_transport.ungroup_outputs(removed_outputs)
-						}
-					} 
+				const players =	group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} )	
+				const zone = svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output);
+				const new_outputs= players?.map(player => rheos_players.get(player.pid)?.output).filter(Boolean) || []
+				const old_outputs = zone?.outputs.map(output => output?.output_id) || []
+				if (get_zone_group_value(zone) !== get_heos_group_value(group)) {
+					if (new_outputs?.length >1 && new_outputs?.length > old_outputs?.length) {
+						svc_transport.group_outputs(new_outputs)
+					}
+					else {
+						let removed_outputs = old_outputs?.filter(op => !new_outputs?.includes(op))
+						svc_transport.ungroup_outputs(removed_outputs)
+					}
+				} 
 			}
 		})
-		//.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
-		//	log && console.log("⚠ PLAYERS HAVE CHANGED - RECONFIGURING")
-		//	setTimeout(async ()=>{await compare_players()},5000)
-		//})
+		.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
+			log && console.log("⚠ PLAYERS HAVE CHANGED")
+		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			if ( res.heos.message.parsed.error.includes("Unable to play media")){
 				svc_transport.control(rheos_players.get(res.heos.message.parsed.pid)?.zone, 'play')
@@ -135,23 +134,39 @@ async function add_listeners() {
 			}
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
-			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid)
-			if (player?.output && (mute != player.volume.mute) ) {
-				player.volume.mute = mute
-				svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
-			}
-			if (!avr_control && player?.output && player?.volume && level !== player?.volume?.level) {
-				player.volume.level = level
-				await svc_transport.change_volume(player.output, 'absolute', level)
-			}
+			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid), output = rheos_outputs.get(player.output)
+			if (player){
+				if (mute != player.volume.mute) {
+					player.volume.mute = mute
+					svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
+				}
+				if (level !== player?.volume?.level) {
+					player.volume.level = level
+					
+				}
+				if (output){
+					if (output.volume?.value !== level){
+						svc_transport.change_volume(output, 'absolute', level)
+					}
+					if (output.mute == 'on'!== mute) {
+						svc_transport.mute(output, (mute == 'on' ? 'mute' : 'unmute'))	
+					}
+				}
+			}	
 		})
 		.on({ commandGroup: "event", command: "group_volume_changed" }, async (res) => {
-			const { heos: { message: { parsed: { gid } } } } = res, group = rheos_players.get(gid)
-			if (group?.players){
-				for (let player of group.players){
-					const res = await heos_command('player','get_volume',{pid : player.pid})
-					const op = (rheos_players.get(player.pid).output)
-					svc_transport.change_volume(op, 'absolute', res.parsed.level)
+			const { heos: { message: { parsed: { mute,level,gid } } } } = res, group = rheos_groups.get(gid)
+			if (!group){return}
+			let fixed_zone = svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output)
+			if (!fixed_zone) {return}
+			group.volume = {mute : mute, level : level}
+			if ([...fixed_groups.keys()].includes(get_zone_group_value(fixed_zone))){
+            	let output = fixed_zone?.outputs[fixed_zone.outputs.length -1]
+				if (level !== output.volume.level){
+					svc_transport.change_volume(fixed_zone?.outputs[fixed_zone.outputs.length -1],'absolute',level)
+				}
+				if ((mute == 'on'!== output.volume.mute) ) {
+					svc_transport.mute(fixed_zone?.outputs[fixed_zone.outputs.length -1], (mute == 'on' ? 'mute' : 'unmute'))	
 				}
 			}
 		})	
@@ -185,7 +200,7 @@ async function discover_devices() {
 					const devices = slim_devices.squeeze2upnp.device.map(d => d.friendly_name[0])
             	if (players.length && players.every((player) => {return devices.includes(player.name)})){	
 					clearInterval(message)
-					await monitor()
+					monitor()
 					rheos.discovery=0
 					rheos.mode = false
 					resolve()
@@ -304,6 +319,7 @@ async function get_players() {
 	})
 }
 async function compare_players(){
+	console.log("COMPARING PLAYERS")
 	const old_pids = [...rheos_players.keys()]
 	const new_players = await get_players().catch(() => {console.error("⚠ UNABLE TO GET PLAYERS TO COMPARE")})
 	if (!new_players) {return}
@@ -696,7 +712,6 @@ async function create_avr_controls(player){
 					convenience_switch : async function (req) {
 						if (avr_zone_controls[(Math.abs(player.pid)+index)].state.status === 'standby'){
 							await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" )	
-							//avr_zone_controls[(Math.abs(player.pid)+index)].update_state({status: "indeterminate"})
 							req.send_complete("Success")
 						} else {
 							req.send_complete("Success")	
@@ -704,7 +719,6 @@ async function create_avr_controls(player){
 					},  
 					standby:  async function (req) {
 						avr_zone_controls[(Math.abs(player.pid)+index)].state.status = "standby"
-						//avr_zone_controls[(Math.abs(player.pid)+index)].update_state({status: "indeterminate"})
 						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" )
 						req.send_complete("Success")
 					}
@@ -809,17 +823,16 @@ async function update_outputs(outputs,added,zone,avr,player){
 				op.source_controls === false && console.error("⚠ NO SOURCE CONTROLS",op)
 				const op_name = get_output_name(op) 
 				const old_op = rheos_outputs.get(op.output_id)
+				const is_fixed = op.source_controls[0].display_name.includes("🔗")
 				if (op_name.includes("​")){
 					player = (op_name && await get_player_by_name(op_name.split("​",1)[0])) || undefined
-				} else {
-					if (player = (op_name && await get_player_by_name(op_name)) || undefined){
-						player.output = op.output_id
-						op.player = player
-						rheos_outputs.set(op.output_id,op)
-					}
-				}
-				if  (typeof(player) == "object" && player.type !== "AVR" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value)) || (op.volume?.is_muted !== old_op?.volume?.is_muted)){
-				    await update_volume(op,player)
+				} else 	if (player = (op_name && await get_player_by_name(op_name)) || undefined){
+					player.output = op.output_id
+					op.player = player
+					rheos_outputs.set(op.output_id,op)
+				} 
+				if  (typeof(player) == "object" && !is_fixed && player.type !== "AVR" && (old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value)) || (op.volume?.is_muted !== old_op?.volume?.is_muted)){
+					update_volume(op,player)
 				}
 				if (player?.type === "AVR") {
 					zone = (svc_transport.zone_by_output_id(player.output))
@@ -833,14 +846,12 @@ async function update_outputs(outputs,added,zone,avr,player){
 							player?.ip && control_avr(player.ip,(control.state.index === 1 ? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF"))
 						}
 						rheos_outputs.set(op.output_id,op)
-					} else {
-						typeof(player) == "object" && (op.volume && old_op?.volume?.value && (op.volume?.value !== old_op?.volume?.value)) 
 					}
 				}
-				if (fixed_groups.size && op?.output_id){ 
+				if (fixed_groups.size && is_fixed){ 
 					const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
 					if (group) {
-						group?.gid && await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
+						group?.gid && update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 					}
 					rheos_outputs.set(op.output_id,op)
 				}
@@ -914,7 +925,7 @@ async function update_zones(zones,added){
 							group_pending.shift()
 						}	
 					}
-					if (!group_pending.length && fixed?.gid && (z.state == "paused" )  && z.outputs.length >1 ){
+					if (!group_pending.length && fixed?.gid && (z.state == "paused" || z.state == "stopped" )  && z.outputs.length >1 ){
 						svc_transport.ungroup_outputs(z.outputs)
 					}	   
 				}	
@@ -924,7 +935,8 @@ async function update_zones(zones,added){
 				const heos_group = group?.players.map(player => player.pid);
 				if (z.outputs.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
 					await group_enqueue(new_roon_group)
-				}	 
+				}	
+				z.group = group 
 				rheos_zones.set(z.zone_id,z)
 	        	fixed && z.outputs.length == 1 || z.state == 'paused' || z.state == 'stopped' || (old_zone?.now_playing?.one_line?.line1 == z?.now_playing?.one_line?.line1 ) ||  console.error(new Date().toLocaleString(), z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
 			} else { 
@@ -943,10 +955,13 @@ async function update_zones(zones,added){
 	}).catch(err => console.error(err))
 }
 async function update_volume(op,player){
+	if (!op?.volume){return}
 	let {is_muted,value} = op.volume
-	let {mute = "off",level =0} = player?.volume 
+	if (!player?.volume){return}
+	let {mute = "off",level = 0} = player?.volume 
+	
 	if (player.type !== "AVR" && (mute !== (is_muted ? "on" : "off"))) {
-		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted == "on"}).catch(err => console.error(err))
+		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(err))
 	}
 	if (player.type !== "AVR" && (value || value === 0) && level !== value) {
 		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(err))
@@ -977,7 +992,7 @@ async function update_group_volume(op,group,vol,mute){
 	vol && await heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(err))
 	mute && await heos_command("group", "set_mute", { gid: group.gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(err))
 }
-async function heos_command(commandGroup, command, attributes = {}, timer = 3000) {
+async function heos_command(commandGroup, command, attributes = {}, timer = 5000) {
 	if (!rheos_connection) {
 		console.error("⚠ NO CONNECTION")
 		return
@@ -1203,7 +1218,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.2-1",
+		display_version: "0.8.2-2",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1236,8 +1251,7 @@ async function connect_roon() {
 						}
 					}
 					break
-					case "Error" : {console.error('⚠',"SUBSCRIBED OUTPUT ERROR",cmd)
-					console.log(is_alive)
+					case "NetworkError" : {console.error('⚠',"SUBSCRIBED OUTPUT ERROR",cmd)
 					}
 					break
 					default: console.error('⚠',"SUBSCRIBED OUTPUT UNKNOWN ERROR",cmd,data)	
@@ -1262,8 +1276,8 @@ async function connect_roon() {
 					}	
 					break
 					case "NetworkError" : {
-						console.error('⚠',"SUBSCRIBED ZONE ERROR ,EXITING")
-						process.exit(3)	
+						console.error('⚠',"SUBSCRIBED ZONE ERROR ")
+						roon.start_discovery()
 					}
 					break
 					default: console.error('⚠',"SUBSCRIBED ZONE UNKNOWN ERROR",cmd,data)
@@ -1411,7 +1425,7 @@ function get_pid(player_name) {
 	}
 }
 function get_output_name(output){
-	return (output.source_controls? output.source_controls[0]?.display_name : undefined)
+	return (output?.source_controls? output.source_controls[0]?.display_name : undefined)
 }
 function sum_array(array) {
 	if (array == undefined || !Array.isArray(array)) { return 0 }
@@ -1434,6 +1448,8 @@ function get_elapsed_time(start_time) {
 function init_signal_handlers() {
     const handle = function(signal) {
 		console.log("\r\nRHEOS IS SHUTTING DOWN")
+		exec("pkill -f -9 UPnP")
+		exec("pkill -f -9 squeezelite")
 		process.exit(0);	
     };
     process.on('SIGTERM', handle);
