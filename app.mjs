@@ -1,4 +1,4 @@
-const version = "0.8.2-2"
+const version = "0.8.2-3"
 
 "use-strict"
 import RoonApi from "node-roon-api"
@@ -16,7 +16,7 @@ import xml2js, { parseStringPromise } from "xml2js"
 import util from "node:util"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-var roon, is_alive, svc_status, mysettings, avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {}
+var roon, is_alive, svc_status, mysettings, avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
 const fixed_groups = new Map()
 const all_groups = new Map()
 const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
@@ -603,7 +603,7 @@ async function update_avr_status(avr){
 	return new Promise(async function (resolve,reject) {
 		const status = new Set (await (control_avr(avr.ip,"\rZM?\rSI?\rMV?\rMU?\rZ2?\rZ2MU?\r")))
 		const avrs = Object.entries(avr_zone_controls).filter(o => o[0].includes(avr.name))	
-		if(Array.isArray(avr.status)){
+		if(!block_avr_update && Array.isArray(avr.status)){
 			if (status.size == 11){
 				let s = [...status].join(" ")
 				let index = 0
@@ -615,23 +615,14 @@ async function update_avr_status(avr){
 								control[1].state.status = "selected"
 								await create_avr_zone(avr,index)		
 							}
-						} else if ((index === 0 && status.has("ZMON")) || (index ===1 && status.has("Z2ON") )) { 	
-							if (control[1].state.status !== "standby "){
-								control[1].update_state({supports_standby :false , status : "standby"})
-								control[1].output && svc_transport.standby(control[1].output,{control_key : '1'})
-								control[1].state.status = "standby"
-								if (!op) {await create_avr_zone(avr,index)}
-							}	  	
-						} else if ((index == 0 && (status.has("ZMOFF") || !status.has("SINET"))) || (index ==1 && (status.has("Z2OFF") || !status.has("Z2NET")))) { 
-							control[1].update_state({supports_standby :true, status : "deselected"})
-							control[1].state.status = "deselected"
-							if (control[1].output ){
-								svc_transport.ungroup_outputs([control[1]?.output.output_id])
-								delete control[1].output 
-							}	
 						} else {
-							console.log(control[0],"STATE 4",index,status)
-						
+								control[1].update_state({supports_standby :true, status : "deselected"})
+								control[1].state.status = "deselected"
+								if (control[1].output ){
+									svc_transport.ungroup_outputs([control[1]?.output.output_id])
+									delete control[1].output 
+									rheos_outputs.delete(control[1].output?.output_id)
+								}	
 						}
 					if (op && index == 0){
 						let MV = s.search(/MV\d/) 
@@ -681,18 +672,7 @@ async function create_avr_zone(avr,index){
 	const hex = ((Math.abs(avr?.pid)+(index+1)).toString(16))	
 	const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
 	rheos.processes[hex] || (rheos.processes[hex] = await spawn(squeezelite,["-M", index === 0?  avr?.name + "​ Main​ Zone": avr?.name + "​ Zone​ 2","-m", mac,"-o","-","-Z","192000"]))
-	Array.isArray(avr.status) && await switch_zone_on(avr,index)
 	return	
-}
-async function switch_zone_on(avr,index){
-	if (!avr.status ){return}
-    const {status = []} = avr?.status
-	if (index == 0){
-		status.includes("ZMON") || await control_avr( avr.ip,  "ZMON" )	
-	} else {
-		status.includes("Z2ON") || await control_avr( avr.ip,  "Z2ON" )	
-	}
-    return
 }
 async function create_avr_controls(player){
 	log && console.log("CREATING AVR CONTROLS FOR",player.name)
@@ -710,17 +690,16 @@ async function create_avr_controls(player){
 						index : index
 					},  
 					convenience_switch : async function (req) {
-						if (avr_zone_controls[(Math.abs(player.pid)+index)].state.status === 'standby'){
-							await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" )	
-							req.send_complete("Success")
-						} else {
-							req.send_complete("Success")	
-						}				
+						setTimeout( () => {req.send_complete("Success")},3000)						
 					},  
 					standby:  async function (req) {
+					    avr_zone_controls[(Math.abs(player.pid)+index)].update_state({ status : "indeterminate"})
 						avr_zone_controls[(Math.abs(player.pid)+index)].state.status = "standby"
+						block_avr_update = true
+						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" )
 						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" )
 						req.send_complete("Success")
+						block_avr_update = false
 					}
 				}	
 				avr_zone_controls[(Math.abs(player.pid)+index)]	= svc_source_control.new_device(controller)
@@ -776,8 +755,9 @@ async function create_avr_controls(player){
 				try {	
 					if (!this.state.display_name.toUpperCase().includes("LAST")){
 						await control_avr(this.state.ip,"MS"+(this.state.display_name.slice(2).toUpperCase())).catch(() => {})		
+						req.send_complete("Success")
 					} 
-					req.send_complete("Success")
+					
 				} catch {
 					req.send_complete("Success")
 				}
@@ -880,7 +860,7 @@ async function update_zones(zones,added){
 					if(op_name.includes("​")){				
 						let {state : {pid,ip,index}} = avr_zone_controls[op_name]	
 						let avr_status = rheos_players.get(pid).status
-						if (index == 1 ? avr_status.findIndex(o => o == "SINET")>-1 : avr_status.findIndex(o => o == "Z2NET")>-1 ){
+						if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
 							await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
 						}	
 					}
@@ -1218,7 +1198,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.2-2",
+		display_version: "0.8.2-3",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1277,10 +1257,10 @@ async function connect_roon() {
 					break
 					case "NetworkError" : {
 						console.error('⚠',"SUBSCRIBED ZONE ERROR ")
-						roon.start_discovery()
 					}
 					break
 					default: console.error('⚠',"SUBSCRIBED ZONE UNKNOWN ERROR",cmd,data)
+					
 				}
 			})
 		},
