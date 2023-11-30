@@ -215,7 +215,7 @@ async function create_root_xml() {
 			try {
 			  	await execFileSync(app, ['-i', './UPnP/Profiles/config.xml', '-b', system_info[0]])
 			} catch (err) {
-				console.log("ERROR",err);
+				console.log("ERROR CREATING CONFIG XML",err);
 			}
 			resolve()
 		} 
@@ -718,10 +718,10 @@ async function create_avr_controls(player){
 					    avr_zone_controls[(Math.abs(player.pid)+index)].update_state({ status : "indeterminate"})
 						avr_zone_controls[(Math.abs(player.pid)+index)].state.status = "standby"
 						block_avr_update = true
-						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" ).catch(()=>{console.log("ERROR")})
-						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" ).catch(()=>{console.log("ERROR")})
+						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" ).catch(()=>{console.log("ERROR SETTING AVR TO NETWORK")})
+						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" ).catch(()=>{console.log("ERRORSETTING AVR POWER")})
 						block_avr_update = false
-						update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.log("ERROR")})
+						update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.log("ERROR UPDATING AVR STATUS")})
 						req.send_complete("Success")
 					}
 				}	
