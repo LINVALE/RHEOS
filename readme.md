@@ -10,7 +10,7 @@ A ROON Extension to allow  control of Denon/Marantz HEOS devices from ROON.
 -   🎯 Bi-directional Control of player play, pause, previous, volume, mute and grouping within HEOS players from ROON or Heos App.
 -   🎶 Group HEOS devices from ROON. Uses HEOS grouping to ensure synchronization with other HEOS players. Only groups HEOS players.
 -   🔗 Create fixed groups for ROON outputs. Allows volume  control of all grouped players from ROON interface using single control.
--   ⇆  Control Denon/Marantz Amplifier Zone volumes and select sound modes.
+-   ⇆  Control Denon/Marantz Amplifier Zone power, volumes and select sound modes.
 -   🔊 Does not use AirPlay so can stream at Hi-Resolution for HS2 players.
 -   🚫 Written in pure Javascript / Nodejs with limited module dependencies (heos-api, squeeze2UPnP, Xml2js,ip)
 
@@ -58,9 +58,9 @@ RHEOS will attempt to discover all connected HEOS devices on start up. Tested to
 
 Players will appear as Squeezebox Devices in ROON Settings -> Audio. Each device is intially unamed and to enable in ROON edit a device name(Edit Rooms -> Select / Edit Name).  If they do not appear make sure you are not running Logitech Media Server (LMS) and do not have another version of RHEOS enabled onthe system.
 
-If you have HS2 devices you may wish to enable Hi-Res streaming (192 kHz 24 Bit Flac). Do this in Settings-> Extension -> RHEOS -> Settings for each HS2 player. This may increase network load and success will depend upon wired connections and a fast ethernet. All players default to CD quality 48kHz 24 bit.
+If you have HS2 or "Denon Home" devices you may wish to enable Hi-Res streaming (192 kHz 24 Bit Flac). Do this in Settings-> Extension -> RHEOS -> Settings for each HS2 player. This may increase network load and success will depend upon wired connections and a fast ethernet. All players default to CD quality 48kHz 24 bit.
 
-The only other settings are an IP address of the Heos Player you would like to use as the main connection. All HEOS commands are sent through this and RHEOS listens for changes to any of your players through this. If there is a problem discovering your HEOS players you can try to edit this address. Heos devices must by on the same local network as the Roon Serverand the device running the Rheos app.  Once a connection has been made, all HEOS player IPs are stored and can be selected from the drop-down. If none has been found you may enter the IP address, if you can find this from your router DHCP table.
+Other settings include an IP address of the Heos Player you would like to use as the main connection. All HEOS commands are sent through this and RHEOS listens for changes to any of your players through this. If there is a problem discovering your HEOS players you can try to edit this address. Heos devices must by on the same local network as the Roon Serverand the device running the Rheos app.  Once a connection has been made, all HEOS player IPs are stored and can be selected from the drop-down. If none has been found you may enter the IP address, if you can find this from your router DHCP table.
 
 Roon Extension Host IP Address shows the discovered IP address of the device you are using to run RHEOS. You may want to try editing this if for some reason network discovery is not working.
 
@@ -70,7 +70,7 @@ Under RHEOS UPnP Settings there are options to select buffer-size, output-size, 
 
 The HEOS players can be controlled as a normal ROON endpoint. Grouping is done through standard ROON grouping but behind the scenes these are translated to HEOS groups and you will see the change appear in the HEOS app.
 
-A fixed group is a feature found in other interfaces but not with ROON or HEOS. It allows a pre-specified group to be automatically formed when the fixed group is selected and played. Players ungroup when play is stopped. Individual volume levels and mute for each player can be controlled from ROON and volume and mute adjusted for all players at the same time. A fixed group can be configured as Hi Res 192kHz 24 bit or CD Res 48kHz 16 bit. If a player with lower resolution is in the group is included then the entire group will play at the lower resolution.
+A **fixed group** is a feature found in other interfaces but not normally with ROON or HEOS. It allows a pre-specified group to be automatically formed when the fixed group is selected and played. Players ungroup when play is stopped. Individual volume levels and mute for each player can be controlled from ROON and volume and mute adjusted for all players at the same time. A fixed group can be configured as Hi Res 192kHz 24 bit or CD Res 48kHz 16 bit. If a player with lower resolution is in the group is included then the entire group will play at the lower resolution.
 
 To create a group, select the outputs/players you wish to group in the ROON interface or using the HEOS app if you prefer. Once grouped this can be converted to a fixed group in ROON by opening Settings->Extensions->RHEOS->Settings->Groups. The group will be shown with a dropdown selection for Hi Res Fixed Group, CD Res, or Delete. Selecting Hi Res or CD and saving will create a new Virtual Squeezebox Player named after the selected group. Selecting Delete will remove a previously fixed group
 
@@ -79,6 +79,11 @@ Once created (only for the first time) go to Settings->Audio and a new Squeezebo
 Once you have enabled the player, use it as normal, selecting play or pause, skip or skip back. On play, the group will automatically form (the name will then be show as the first device in the group + number of players) and it will ungroup when stopped. When the volume control for the group is selected, all player volumes are shown as in a normal group but in addition, the fixed group player will appear at the end of the list (identified by the name you choose and any inserted characters). This will control all of the player volumes in the group as well as mute or unmute all.
 
 Fixed groups are not bi-directional and can not be constructed or controlled from the HEOS app.
+
+**Denon/Marantz AVRs** with two zones can have their power state and volumes controlled independently. In addtion the "sound mode" of the AVR can be selected and maim power turned off.
+To enable control of AVR zones go to Settings->Extensions->RHEOS->Settings->Enable AVR Zone Control and select "On". Receivers with mutiple zones will be discovered and a "Zone Control Device " created as a Squeezeplayer. Once created (only for the first time) go to Settings->Audio and a new Squeezebox should be there waiting to be enabled that is identified as having your receiver name and Main Zone or Zone 2. You can rename this to your preferred identifier for the zone. To use this, the control has to be applied to the main AVR. So, select the AVR volume control and the "cog" control button.This will bring up The "zone settings" where you set up the new zones in "Device Setup". Go to "External Source Controls" and add the appropriate Main Zone and Zone 2 control from the drop down menu and also the "Sound control" for the receiver. You can change the volume control from device to the volume control called "Rheos :" and the name of your receiver.
+
+HEOS enabled AVRS and CD/Network players that can power on and off will power on when a selected RHEOS player is played and can be turned off using the power control button in the roon controller. Unfortunately I can't chane the color of the button to reflect present status due to limitations in the API.
 
 
 
