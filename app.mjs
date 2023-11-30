@@ -1,4 +1,4 @@
-const version = "0.8.3-0"
+const version = "0.8.3-1"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -54,6 +54,7 @@ async function start_up(){
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {throw error(err),reject()}))
 	})
 	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {throw error(err),reject()}))
+	await start_listening()
 	await discover_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Discovering Devices",err => {throw error(err),reject()}))
 	await build_templates().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Templates",err => {throw error(err),reject()}))
     await build_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Devices",err => {throw error(err),reject()}))
@@ -179,7 +180,8 @@ async function discover_devices() {
 					const devices = slim_devices.squeeze2upnp.device.map(d => d.friendly_name[0])
             	if (players.length && players.every((player) => {return devices.includes(player.name)})){	
 					clearInterval(message)
-					//monitor()
+					log && console.log('PLAYERS UNCHANGED')
+					update_status("PLAYERS UNCHANGED",false)
 					rheos.discovery=0
 					rheos.mode = false
 					resolve()
@@ -867,12 +869,12 @@ async function update_outputs(outputs,added,zone,avr,player){
 						}
 					}
 					else {
-						 update_volume(op,player)	
-					}
+							update_volume(op,player)	
+						}
+					
+				}	
 				rheos_outputs.set(op.output_id,op)
-				player && rheos_players.set(player.pid,player)	
 				resolve()
-			}
 			} else {
 				rheos_outputs.delete(op)
 				resolve()
@@ -890,7 +892,7 @@ async function update_zones(zones,added){
 				const old_zone =  rheos_zones.get(z?.zone_id)
 				const fixed = ([...fixed_groups.values()].find(group => z.outputs[z.outputs.length -1]?.source_controls[0].display_name == group.display_name));
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
-				if (index === 0 ){
+				if (index === 0 ){	
 					let player = rheos_outputs.get(op.output_id)?.player
 					if (Array.isArray(player?.PWR)){
 						log && console.log("POWERING OFF",player.name)
@@ -982,12 +984,11 @@ async function update_volume(op,player){
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
 	if ((mute !== (is_muted ? "on" : "off"))) {
-		heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
+		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
 	}
 	if ((value || value === 0) && level !== value) {
-		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
+		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
 	}
-	(player.output = op.output_id) && (player.zone = op.zone_id)
 }
 async function update_avr_volume(player,mode,value){   
 	if (mode == 'relative'){
@@ -1107,9 +1108,9 @@ async function build_devices(player) {
 	})
 }
 async function set_player_resolution(device,player){
-	let x = await player.resolution;
-	console.log(player.name,player.resolution)
-    switch (x) {
+	let resolution = await player.resolution;
+	log && console.log(player.name,player.resolution)
+    switch (resolution) {
 	case  ( "HR") :{
 		device.enabled = ['1']
 		device.mode = ("flc:0,r:192000,s:24").toString().concat(mysettings.flow ? ",flow" : "")
@@ -1260,6 +1261,7 @@ async function connect_roon() {
 								let player = await get_player_by_name(o?.source_controls[0]?.display_name);
 								player && (player.output = o.output_id)
 								o.player = player
+								console.log("SUBSCRIBING",o.display_name,o.output_id)
 						    	rheos_outputs.set(o.output_id, o)
 								player && rheos_players.set(player.pid,player)
 							}
@@ -1308,7 +1310,7 @@ async function connect_roon() {
 			})
 		},
 		core_unpaired: async function (core) {
-			log && console.log("UPAIRED")
+			log && console.log("⚠ UNPAIRED")
             paired = false
 			core = undefined
 		}
