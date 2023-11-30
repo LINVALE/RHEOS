@@ -610,16 +610,16 @@ function monitor_avr_status() {
 	setTimeout(async () => {
 		let avrs = [...rheos_players.values()].filter(p => p.type === "AVR")
 		for await (const avr of avrs){
-			!block_avr_update && avr_control && update_avr_status(avr).catch(() => {})
+			!block_avr_update && avr_control && update_avr_status(avr).catch(() => {console.log("ERROR MONITORING AVR STATUS")})
 		}
 	  	monitor_avr_status();
-	}, 1000);
-  };
+	}, 1000)
+}
 async function update_avr_status(avr){
-	return new Promise(async function (resolve,reject) {
+	return new Promise(async function (resolve) {
 		const status = new Set (await (control_avr(avr.ip,"\rZM?\rSI?\rMV?\rMU?\rZ2?\rZ2MU?\r")))
 		const avrs = Object.entries(avr_zone_controls).filter(o => o[0].includes(avr.name))	
-		log && process.stdout.write(new Date().toLocaleString()+ " PAIRED\r")
+		log && process.stdout.write(new Date().toLocaleString()+ (paired? "   PAIRED\r" : " UNPAIRED\r"))
 		if(svc_transport && paired){
 			if (avr_control && status.size == 11){
 				let s = [...status].join(" ")
@@ -669,8 +669,9 @@ async function update_avr_status(avr){
 				avr.status = [...status] 
 				resolve()
 			} 
-		}
-		reject()
+		} else {
+			resolve()
+		}	
 	})
 }
 async function avr_zone_off(pid,index){
@@ -721,7 +722,7 @@ async function create_avr_controls(player){
 						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" ).catch(()=>{console.log("ERROR SETTING AVR TO NETWORK")})
 						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" ).catch(()=>{console.log("ERRORSETTING AVR POWER")})
 						block_avr_update = false
-						update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.log("ERROR UPDATING AVR STATUS")})
+						await update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.log("ERROR UPDATING AVR STATUS")})
 						req.send_complete("Success")
 					}
 				}	
@@ -827,7 +828,6 @@ async function update_control (control,ip,present){
 async function kill_avr_output(pid){
 	const hex = (pid.toString(16))	
 	if (rheos.processes[hex]){
-		console.log("KILLING ",rheos.processes[hex].pid)
 		process.kill( Number(rheos.processes[hex]?.pid),'SIGKILL') 
 		delete rheos.processes[hex]
 	}	
@@ -902,18 +902,12 @@ async function update_zones(zones,added){
 				} else if ( avr_control && z.outputs.length == 1 && name.includes("​")){
 					let {update_state, state : {pid,index,status,display_name,control_key}} = avr_zone_controls[name]
 					if (status === "deselected"){
-						await kill_avr_output(control_key)
-						update_state({supports_standby: true, status :"deselected" })
+						!op.display_name || op.display_name == "Unnamed" || await kill_avr_output(control_key)
+						update_state({supports_standby: true, status :"standby" })
 						status = "deselected"
 					}  
-					else if (status === "standby"){
-						await kill_avr_output(control_key)
-						await avr_zone_off(pid,index)
-						update_state({supports_standby: true, status :"standby" })
-						status = "standby"
-
-					} else if (avr_control &&  status === "selected" && rheos_players.get(pid)){
-					   const  group = svc_transport.zone_by_output_id(rheos_players.get(pid).output)?.outputs
+					else if (avr_control &&  status === "selected" && rheos_players.get(pid)){
+					    const  group = svc_transport.zone_by_output_id(rheos_players.get(pid).output)?.outputs
 						group && group.push(z.outputs[0])
 						group && svc_transport.group_outputs(group)
 					}
@@ -1134,7 +1128,7 @@ async function set_player_resolution(device,player){
 	await create_player(player.pid)
 }
 async function start_listening() {
-	update_status(false,false)
+	setInterval(()=> {paired && update_status(false,false)},5000)
 	await heos_command("system", "prettify_json_response", { enable: "on" }).catch(err => console.error(new Date().toLocaleString(),"⚠ Failed to set responses"))
 }
 async function choose_binary(name, fixed = false) {
