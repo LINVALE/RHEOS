@@ -1,4 +1,4 @@
-const version = "0.8.3-1"
+const version = "0.8.3-2"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -15,7 +15,7 @@ import xml2js, { parseStringPromise } from "xml2js"
 import util from "node:util"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-var roon, paired = false,svc_status, mysettings, avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
+var roon, paired = false,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
 const fixed_groups = new Map()
 const all_groups = new Map()
 const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
@@ -853,7 +853,10 @@ async function update_outputs(outputs,added,zone,avr,player){
 					if (is_fixed){ 
 						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
 						if (group) {
-							group?.gid &&  update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
+						    clearTimeout(group_volume_control)
+						    group_volume_control = setTimeout(async ()=> {
+							group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)},500	
+							)	
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
@@ -868,8 +871,8 @@ async function update_outputs(outputs,added,zone,avr,player){
 							}
 						}
 					}
-					else {
-							update_volume(op,player)	
+					else if (player && op?.volume?.value !== player?.volume?.level) {
+							await update_volume(op,player)	
 						}
 					
 				}	
@@ -977,12 +980,16 @@ async function update_volume(op,player){
 	let {is_muted,value} = op.volume
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
-	if ((mute !== (is_muted ? "on" : "off"))) {
-		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
-	}
+
 	if ((value || value === 0) && level !== value) {
 		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
 	}
+
+	
+	if ((mute !== (is_muted ? "on" : "off"))) {
+		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
+	}
+	return
 }
 async function update_avr_volume(player,mode,value){   
 	if (mode == 'relative'){
@@ -1003,6 +1010,7 @@ async function update_avr_volume(player,mode,value){
 			}
 		}	
 	} 
+	return
 }
 async function update_group_volume(op,group,vol,mute){
 	vol && await heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(new Date().toLocaleString(),err))
@@ -1236,7 +1244,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.3-0",
+		display_version: "0.8.3-2",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
