@@ -1,4 +1,4 @@
-const version = "0.8.3-3"
+const version = "0.8.3-4"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -57,7 +57,8 @@ async function start_up(){
 	await start_listening()
 	await discover_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Discovering Devices",err => {throw error(err),reject()}))
 	await build_templates().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Templates",err => {throw error(err),reject()}))
-    await build_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Devices",err => {throw error(err),reject()}))
+	await build_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Devices",err => {throw error(err),reject()}))
+	log && console.log("ROON SERVER IP ADDRESS",roon.paired_core?.moo?.transport?.host)
 	await create_zone_controls().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",(err) => {throw error(err),reject()}))
 	log && console.log("ADDING LISTENERS")
 	await add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {throw error(err),reject()}))
@@ -66,6 +67,8 @@ async function start_up(){
 	log && console.log("CREATING FIXED GROUPS")
 	await create_fixed_group_control().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Fixed Groups",err => {throw error(err),reject()}))
 	fixed_control && await load_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",(err) => {throw error(err),reject()}))
+	log && console.log("SETTINGS",Object.entries(mysettings).filter(o => isNaN(o[0])))
+	
 	resolve()
 	}) .catch(err => console.error(new Date().toLocaleString(),"⚠ Error STARTING UP",(err) => {throw error(err),reject()}))
 }
@@ -226,6 +229,7 @@ async function create_root_xml() {
 }
 async function start_heos(counter = 0) {
 	counter > 0 && console.log( "RECONNECTING TO HEOS", counter)
+	counter >20 && process.exit(0)
 	return new Promise (async function (resolve,reject){
 		log && console.log("STARTING HEOS")
 		rheos_connection || (rheos_connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000,port:1255, address:system_info[0]}),HeosApi.discoverAndConnect({timeout:10000,port:1256, address:system_info[0]})]))
@@ -234,9 +238,10 @@ async function start_heos(counter = 0) {
 		const players = await get_players().catch(()=>{console.error(new Date().toLocaleString(),"⚠ Unable to discover Heos Players");throw new Error('Unable to Get Heos Players');})
 		if (Array.isArray(players)){
 			for await (let player of players) {
-			   	if (player.pid) {
+			   	if (typeof(player) == "object" && player.pid) {
 					if (!player.ip) {
 						player = await heos_command('player','get_player',{pid : player?.pid}).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Unable to discover Heos Players");throw new Error('Unable to Get Heos Players');})
+					    if (!player.ip){start_heos(counter ++)}
 					}
 					rheos_players.set(player.pid, player)
 					player.resolution = myplayers.find(p => p.pid == player.pid)?.resolution || "CD"
@@ -328,19 +333,19 @@ async function compare_players(){
 }
 async function create_player(pid) {
     if (rheos.processes[pid]){
-
 		process.kill(Number(rheos.processes[pid].pid))
 		delete(rheos.processes[pid])
 	}
 	const player = rheos_players.get(Number(pid))
 	if (player){
 		console.log("CREATING",player.name)
-	const name = player.name
-	const app = await (choose_binary(name)).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
-	rheos.processes[player.pid] = spawn(app, ['-b', system_info[0], '-Z', '-M', name,
+		const name = player.name
+		const app = await (choose_binary(name)).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
+		rheos.processes[player.pid] = spawn(app, ['-b', system_info[0], '-Z', '-M', name,
 		'-x', './UPnP/Profiles/' + name + '.xml', 
 		'-p','./UPnP/Profiles/' + name + '.pid',
-		'-f', './UPnP/Profiles/' + name + '.log']),
+		'-f', './UPnP/Profiles/' + name + '.log',
+		'-s', mysettings.upnp_ip]),
 		{ stdio: 'ignore' }
 	}
 	return 
@@ -388,6 +393,7 @@ async function create_fixed_group_control(){
 			},3000)
 		},  
 		standby:  async function (req) {
+			log && console.log("STANDING BY FIXED GROUP")
 			req.send_complete("Success")				 
 		}
 	}
@@ -430,6 +436,7 @@ async function start_roon() {
 				mysettings[p.pid] = p.resolution
 				if (p.type) {mysettings["M"+p.pid] = p.sound_mode}
 			})
+			mysettings.upnp_ip = mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host
 			Array.isArray(myfixed_groups) && myfixed_groups.forEach(g => {mysettings[g.sum_group] = (g.resolution)})
 			cb(makelayout(mysettings))
 		},
@@ -439,11 +446,17 @@ async function start_roon() {
 				if (mysettings.clear_settings) {
 					mysettings.clear_settings = false; mysettings = def.settings
 				} 
+				if (mysettings.upnp_ip !== settings.upnp_ip){
+					for await (let player of [...rheos_players.values()]){		
+					     create_player(player.pid)
+					}
+				}
 				mysettings = settings.values
 				for await (let player of [...rheos_players.values()]){		
 					if(player.resolution !== l.values[player.pid] ){
 						player.resolution = l.values[player.pid] || "CD"
 						rheos_players.set(player.pid,player)
+						delete(settings[player.pid])
 						log && console.log("UPDATING RESOLUTION",player.name,player.resolution)
 						await build_devices(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to build devices")})
 					}
@@ -505,7 +518,7 @@ async function start_roon() {
 				}
 				roon.save_config("fixed_groups",myfixed_groups)
 				roon.save_config("settings", mysettings)
-				roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));	
+				roon.save_config("players",[...rheos_players.values()].map((o) => {let {gid,Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));	
 			}
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
@@ -521,7 +534,7 @@ async function control_avr(ip,command,req) {
 	if (!command) {return }
 	return new Promise(async (resolve, reject) => {	
        if(avr_buffer[ip].findIndex(o => {o.item[0] == ip && (o.item[1].slice(0,1) ==  command.slice(0,1)) && !isNaN(command.slice(2,4)) })>-1){
-		console.log ("ALREADY BUFFERING",ip,command)
+		log && console.log ("ALREADY BUFFERING",ip,command)
 		}
 		block_avr_update = true
 	 	avr_buffer[ip].push({ item: Array(ip,command,req), resolve, reject })
@@ -548,9 +561,8 @@ async function avr_dequeue(ip,res) {
 		res = res.split(",").filter((str) => {return /\S/.test(str)})
 		res.push(req.item[0])
 		if (req.req) {
-			console.log("AVR BUFFER SENDING COMPLETE SUCCESS")
+			log && console.log("AVR BUFFER SENDING COMPLETE SUCCESS")
 			req.req.send_complete("Success")
-		
 		}
 		req && req.resolve(res)	
 	}
@@ -596,11 +608,11 @@ async function connect_avr(pid){
 	let avr = rheos_players.get(pid) 
 	avr.PWR = await control_avr(avr.ip,"PW?").catch((err)=>{console.error(new Date().toLocaleString(),"FAILED TO CONNECT",err)})
 	if (Array.isArray (avr.PWR)){
-		log && console.log(avr.name.toUpperCase(), "HAS POWER SWITCH WITH SETTINGS",avr.PWR)
+		log && console.log(avr.name.toUpperCase(), "HAS POWER SWITCH",)
 	}
 	avr.Z2 = await control_avr(avr.ip,"Z2?").catch((err)=>{console.error(new Date().toLocaleString(),"FAILED TO CONNECT",err)})
 	if (avr_control && Array.isArray (avr.Z2) && avr.Z2.length >1){
-		log && console.log(avr.name.toUpperCase(), "HAS ZONE 2 WITH SETTINGS",avr.Z2)
+		log && console.log(avr.name.toUpperCase(), "HAS ZONE 2")
 		await create_avr_controls(avr).catch((err)=>{console.log(err)})
 		avr.type = "AVR"
 		avr.status = []	
@@ -1115,7 +1127,6 @@ async function build_devices(player) {
 }
 async function set_player_resolution(device,player){
 	let resolution = player.resolution;
-	log && console.log(player.name,player.resolution)
     switch (resolution) {
 	case  ( "HR") :{
 		device.enabled = ['1']
@@ -1138,7 +1149,7 @@ async function set_player_resolution(device,player){
 	devices.xml_template = builder.buildObject(subtemplate)
 	await fs.writeFile("./UPnP/Profiles/" + (device.name[0]) + ".xml", devices.xml_template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	await create_player(player.pid)
-	mysettings[player.pid]=resolution
+	//mysettings[player.pid]=resolution
 	myplayers.find(o => o.pid == player.pid).resolution = resolution
 	roon.save_config("settings",mysettings);
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
@@ -1251,7 +1262,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.3-3",
+		display_version: "0.8.3-4",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1411,6 +1422,7 @@ function makelayout(settings) {
 	}
 	l.layout.push({
 		type: "group", title: "UPnP SETTINGS ", subtitle: "Experimental settings for UPnP devices",collapsable: true, items: [
+		
 		{ title: "● Buffer Size", type: "dropdown", setting: 'streambuf_size', values: [{ title: "Small", value: 524288 }, { title: "Medium", value: 524288 * 2 }, { title: 'Large', value: 524288 * 3 }] },
 		{ title: "● Output Size", type: "dropdown", setting: 'output_size', values: [{ title: 'Small', value: 4194304 }, { title: 'Medium', value: 4194304 * 2 }, { title: 'Large', value: 4194304 * 3 }] },
 		{ title: "● Stream Length", type: "dropdown", setting: 'stream_length', values: [{ title: "no length", value: -1 }, { title: 'chunked', value: -3 }] },
@@ -1424,8 +1436,9 @@ function makelayout(settings) {
 		{ title: "● Send Metadata", type: "dropdown", setting: 'send_metadata', values: [{ title: "On", value: true }, { title: 'Off', value: false }] },
 		{ title: "● Send Cover Art", type: "dropdown", setting: 'send_coverart', values: [{ title: "On", value: true }, { title: 'Off', value: false }] },
 		{ title: "● Flow Mode", type: "dropdown", setting: 'flow', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
-		{ title: "● Log File Size Limit (MB) -1 for unlimited", type: "integer", setting: 'log_limit', min: -1, max: 10 }
-		]
+		{ title: "● Log File Size Limit (MB) -1 for unlimited", type: "integer", setting: 'log_limit', min: -1, max: 10 },
+		{ title: "● ROON UPnP Server Address", type: "string",  maxlength: 15, setting: "upnp_ip" }
+	]
 	})
 	l.layout.push({
 		type: "group", title: "RESET" , subtitle :" Changes are irreversible, use with caution", collapsable: true, items: [
