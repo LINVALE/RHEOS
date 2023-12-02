@@ -1,4 +1,4 @@
-const version = "0.8.3-2"
+const version = "0.8.3-3"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -253,7 +253,7 @@ async function start_heos(counter = 0) {
 			})
 			console.table(players, ["name", "pid", "model", "ip", "resolution","network"])
 			roon.save_config("settings",mysettings);
-			roon.save_config("players",players);
+			roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 			resolve	(players)
 		} else {
 			reject (start_heos(counter ++))
@@ -327,6 +327,11 @@ async function compare_players(){
 	return
 }
 async function create_player(pid) {
+    if (rheos.processes[pid]){
+
+		process.kill(Number(rheos.processes[pid].pid))
+		delete(rheos.processes[pid])
+	}
 	const player = rheos_players.get(Number(pid))
 	if (player){
 		console.log("CREATING",player.name)
@@ -435,10 +440,11 @@ async function start_roon() {
 					mysettings.clear_settings = false; mysettings = def.settings
 				} 
 				mysettings = settings.values
-				for await (let player of myplayers){				
+				for await (let player of [...rheos_players.values()]){		
 					if(player.resolution !== l.values[player.pid] ){
 						player.resolution = l.values[player.pid] || "CD"
-						rheos_players.get(player.pid).resolution = player.resolution
+						rheos_players.set(player.pid,player)
+						log && console.log("UPDATING RESOLUTION",player.name,player.resolution)
 						await build_devices(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to build devices")})
 					}
 					if (player.type){
@@ -499,6 +505,7 @@ async function start_roon() {
 				}
 				roon.save_config("fixed_groups",myfixed_groups)
 				roon.save_config("settings", mysettings)
+				roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));	
 			}
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
@@ -576,7 +583,7 @@ async function create_zone_controls(err,count=0) {
 			i++
 		}
 		if (i == 11){console.error(new Date().toLocaleString(),"⚠ FAILED TO SET AVR CONTROLS FOR ",failed_connections.map(p => p[1].name))}
-		roon.save_config("players",[...rheos_players.values()].map((o) => {let {volume,output,zone,state,group, ...p} = o;return(p)}));
+		roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 		avr_control && log &&console.log("STARTING TO MONITOR AVRS")
 	    avr_control && monitor_avr_status()
 	} else {
@@ -602,8 +609,8 @@ async function connect_avr(pid){
 		avr.sound_mode = sm[0]
 		return("AVR")						    
 	} else { 
-		avr.type = "Not AVR";
-		return("Not AVR")
+		avr.type = undefined;
+		return(undefined)
 	}
 }
 function monitor_avr_status() {
@@ -1083,15 +1090,20 @@ async function build_devices(player) {
 				console.error(new Date().toLocaleString(),"⚠ NO DEVICE ENTRIES")
 				return
 			}
-			for await (const [index, device] of result?.squeeze2upnp?.device?.entries()) {
-				let player = await get_player_by_name(device.name[0])
-				if ( player)  {
-					set_player_resolution(device,player)	
+if (player){
+ 	let device = result?.squeeze2upnp?.device.find(o => o.name == player.name)
+	console.log("RESETTING PLAYER RESOLUTION",player.name,player.resolution)
+	set_player_resolution(device,player)
+
+} else {for await (const [index, device] of result?.squeeze2upnp?.device?.entries()) {
+			let player = await get_player_by_name(device.name[0])
+			if (player){
+				set_player_resolution(device,player)	
 				}
-				else {
-					delete result.squeeze2upnp.device[index]
-				}
+			else {
+				delete result.squeeze2upnp.device[index]
 			}
+		
 			result.squeeze2upnp.common[0] = devices.template.squeeze2upnp.common[0]
 			result.squeeze2upnp.common[0].enabled = ['0']
 			delete result.squeeze2upnp.slimproto_log
@@ -1105,12 +1117,20 @@ async function build_devices(player) {
 			devices.xml_template = builder.buildObject(result)
 			await fs.writeFile("./UPnP/Profiles/config.xml", devices.xml_template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to save config")})
 			rheos.mode = false
+		
+		
+		}
+
+}
+
+			
+
 			resolve()
 		})
 	})
 }
 async function set_player_resolution(device,player){
-	let resolution = await player.resolution;
+	let resolution = player.resolution;
 	log && console.log(player.name,player.resolution)
     switch (resolution) {
 	case  ( "HR") :{
@@ -1134,6 +1154,10 @@ async function set_player_resolution(device,player){
 	devices.xml_template = builder.buildObject(subtemplate)
 	await fs.writeFile("./UPnP/Profiles/" + (device.name[0]) + ".xml", devices.xml_template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	await create_player(player.pid)
+	mysettings[player.pid]=resolution
+	myplayers.find(o => o.pid == player.pid).resolution = resolution
+	roon.save_config("settings",mysettings);
+	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 }
 async function start_listening() {
 	setInterval(()=> {paired && update_status(false,false)},5000)
@@ -1244,7 +1268,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.3-2",
+		display_version: "0.8.3-3",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
