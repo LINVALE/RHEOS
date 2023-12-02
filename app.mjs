@@ -849,21 +849,19 @@ async function update_outputs(outputs,added,zone,avr,player){
 				const op_name = get_output_name(op) 
 				const old_op = rheos_outputs.get(op.output_id)
 				const is_fixed = op.source_controls[0].display_name.includes("🔗")
-				
+				const diff = op.volume?.value - old_op?.volume?.value
 				if (op_name.includes("​")){
 					player = (op_name &&  await get_player_by_name(op_name.split("​",1)[0])) || undefined
 				} else 	if (player = (op_name &&  await get_player_by_name(op_name)) || undefined){
 					player.output = op.output_id
 					op.player = player
 				} 
-				if ((op.volume?.value !== old_op?.volume?.value) || (op.volume?.is_muted !== old_op?.volume?.is_muted)){
+				if (diff || (op.volume?.is_muted !== old_op?.volume?.is_muted)){
 					if (is_fixed){ 
-						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(svc_transport.zone_by_output_id(op.output_id)))
+					    const zone = svc_transport.zone_by_output_id(op.output_id)
+						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(zone))
 						if (group) {
-						    clearTimeout(group_volume_control)
-						    group_volume_control = setTimeout(async ()=> {
-							group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)},500	
-							)	
+						   group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
@@ -878,16 +876,13 @@ async function update_outputs(outputs,added,zone,avr,player){
 							}
 						}
 					}
-					else if (player && op?.volume?.value !== player?.volume?.level) {
+					if (player && op?.volume?.value !== player?.volume?.level) {       
 							await update_volume(op,player)	
-						}
-					
+					}
 				}	
 				rheos_outputs.set(op.output_id,op)
-				resolve()
 			} else {
 				rheos_outputs.delete(op)
-				resolve()
 			}	
 			resolve()
 		}
@@ -987,12 +982,9 @@ async function update_volume(op,player){
 	let {is_muted,value} = op.volume
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
-
 	if ((value || value === 0) && level !== value) {
 		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
 	}
-
-	
 	if ((mute !== (is_muted ? "on" : "off"))) {
 		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
 	}
@@ -1090,12 +1082,11 @@ async function build_devices(player) {
 				console.error(new Date().toLocaleString(),"⚠ NO DEVICE ENTRIES")
 				return
 			}
-if (player){
- 	let device = result?.squeeze2upnp?.device.find(o => o.name == player.name)
-	console.log("RESETTING PLAYER RESOLUTION",player.name,player.resolution)
-	set_player_resolution(device,player)
-
-} else {for await (const [index, device] of result?.squeeze2upnp?.device?.entries()) {
+		if (player){
+			let device = result?.squeeze2upnp?.device.find(o => o.name == player.name)
+			console.log("RESETTING PLAYER RESOLUTION",player.name,player.resolution)
+			set_player_resolution(device,player)
+		} else {for await (const [index, device] of result?.squeeze2upnp?.device?.entries()) {
 			let player = await get_player_by_name(device.name[0])
 			if (player){
 				set_player_resolution(device,player)	
@@ -1103,7 +1094,6 @@ if (player){
 			else {
 				delete result.squeeze2upnp.device[index]
 			}
-		
 			result.squeeze2upnp.common[0] = devices.template.squeeze2upnp.common[0]
 			result.squeeze2upnp.common[0].enabled = ['0']
 			delete result.squeeze2upnp.slimproto_log
@@ -1117,15 +1107,9 @@ if (player){
 			devices.xml_template = builder.buildObject(result)
 			await fs.writeFile("./UPnP/Profiles/config.xml", devices.xml_template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to save config")})
 			rheos.mode = false
-		
-		
+			}	
 		}
-
-}
-
-			
-
-			resolve()
+		resolve()
 		})
 	})
 }
@@ -1253,7 +1237,6 @@ async function update_heos_groups() {
 			}
 			const remove = old_groups.filter(group => !rheos_groups.has(group))
 			svc_transport.ungroup_outputs(rheos_zones.get((rheos_players.get(remove[0])?.zone))?.outputs)
-		
 		} else {
             const remove = old_groups
 			svc_transport.ungroup_outputs(rheos_zones.get((rheos_players.get(remove[0])?.zone))?.outputs)
@@ -1331,7 +1314,6 @@ async function connect_roon() {
 					}
 					break
 					default: console.error(new Date().toLocaleString(),'⚠',"SUBSCRIBED ZONE UNKNOWN ERROR",cmd,data)
-					
 				}
 			})
 		},
