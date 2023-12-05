@@ -1,4 +1,4 @@
-const version = "0.8.3-4"
+const version = "0.8.3-5"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -888,7 +888,7 @@ async function update_outputs(outputs,added,zone,avr,player){
 							}
 						}
 					}
-					if (player && op?.volume?.value !== player?.volume?.level) {       
+					else if (player && op?.volume?.value !== player?.volume?.level || (op?.volume.is_muted !== (player?.volume.mute == 'on'))) {       
 							await update_volume(op,player)	
 					}
 				}	
@@ -912,8 +912,20 @@ async function update_zones(zones,added){
 				if (index === 0 ){	
 					let player = rheos_outputs.get(op.output_id)?.player
 					if (Array.isArray(player?.PWR)){
-						log && console.log("POWERING OFF",player.name)
-						control_avr(player.ip,"PWSTANDBY")
+						block_avr_update = true
+						player.PWR = await control_avr(player?.ip,"PW?")
+						if (player.PWR.includes("PWSTANDBY")){
+							await control_avr(player.ip,"PWON")
+						} else {
+							await control_avr(player.ip,"PWSTANDBY")
+						//	const  group = svc_transport.zone_by_output_id(player.output)?.outputs
+						//	if (group.length >1){
+						//		group.push(z.outputs[0])
+						//		svc_transport.ungroup_outputs(group)
+						//	} 
+						}
+						block_avr_update = false
+
 					} 
 					svc_transport.ungroup_outputs(z.outputs)
 				} else if ( avr_control && z.outputs.length == 1 && name.includes("​")){
@@ -997,7 +1009,7 @@ async function update_volume(op,player){
 	if ((value || value === 0) && level !== value) {
 		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
 	}
-	if ((mute !== (is_muted ? "on" : "off"))) {
+	if ((mute == 'on' !== is_muted  )) {
 		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
 	}
 	return
@@ -1262,7 +1274,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.3-4",
+		display_version: "0.8.3-5",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
