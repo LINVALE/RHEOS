@@ -793,14 +793,14 @@ async function create_avr_controls(player){
 		log && console.log("CREATING VOLUME CONTROL",player.name,player.pid)
 		avr_volume_controls[player.pid] || (avr_volume_controls[player.pid] = svc_volume_control.new_device(volume_control))	
 
-			if (avr_zone_controls[(Math.abs(player.pid)+3).toString()]) {
+			if (avr_zone_controls[(Math.abs(player.pid)).toString()]) {
 
-				console.log("ALREADY CREATED",avr_zone_controls[(Math.abs(player.pid)+3).toString()])
+				console.log("ALREADY CREATED",avr_zone_controls[(Math.abs(player.pid)).toString()])
 			}
 			else {
 				let controller = {    
 					state: {
-						control_key: (Math.abs(player.pid)+3).toString(),
+						control_key: (Math.abs(player.pid)).toString(),
 						display_name: (player?.name + " ♫ Sound Mode"),
 						supports_standby: true,
 						status:  "indeterminate",
