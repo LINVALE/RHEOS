@@ -839,12 +839,8 @@ async function update_control (name,ip,present){
 	await control_avr( ip, next).catch(()=>{console.error("ERROR UPDATING SOUND MODE ",name,ip,next)})
 }
 async function kill_avr_output(pid){
-	console.log("TRYING TO KILL",pid)
 	const hex = (pid.toString(16))	
-	console.log(hex)
-	console.log(Object.keys(rheos.processes))
-	if (rheos.processes[hex]){
-		console.log("KILL",rheos.processes[hex]?.pid)
+	if (rheos.processes[hex].pid){
 		process.kill( Number(rheos.processes[hex]?.pid),'SIGKILL') 
 		delete rheos.processes[hex]
 	}	
@@ -908,6 +904,7 @@ async function update_zones(zones){
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
 				if (index === 0 ){	
 					let player = rheos_outputs.get(op.output_id)?.player
+					svc_transport.ungroup_outputs(z.outputs)
 					if (Array.isArray(player?.PWR)){
 						block_avr_update = true
 						player.PWR = await control_avr(player?.ip,"PW?")
@@ -918,7 +915,7 @@ async function update_zones(zones){
 						}
 						block_avr_update = false
 					} 
-					svc_transport.ungroup_outputs(z.outputs)
+					
 				} else if ( avr_control && z.outputs.length == 1 && name.includes("​")){
 					const control  = Object.values(avr_zone_controls).find(o => o.state.display_name == name)
 					if (control){
