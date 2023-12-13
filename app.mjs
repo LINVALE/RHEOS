@@ -1,4 +1,4 @@
-const version = "0.8.4-0"
+const version = "0.8.4-2"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -245,6 +245,7 @@ async function start_heos(counter = 0) {
 					}
 					rheos_players.set(player.pid, player)
 					player.resolution = myplayers.find(p => p.pid == player.pid)?.resolution || "CD"
+					player.auto_play = myplayers.find(p => p.pid == player.pid)?.auto_play || "OFF"
 					player.volume = {}
 					player.pid && rheos_players.set(player.pid, player)
 					fs.access('./UPnP/Profiles/' + player.name + '.log').then(() => fs.truncate('./UPnP/Profiles/' + player.name + '.log', 0)).catch(()=> {})
@@ -434,7 +435,7 @@ async function start_roon() {
 		get_settings: async function (cb) {
 			Array.isArray(myplayers) && myplayers.forEach(p => {
 				mysettings[p.pid] = p.resolution
-				if (p.type) {mysettings["M"+p.pid] = p.sound_mode}
+				mysettings["A"+p.pid] = p.auto_play
 			})
 			mysettings.upnp_ip = mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host
 			Array.isArray(myfixed_groups) && myfixed_groups.forEach(g => {mysettings[g.sum_group] = (g.resolution)})
@@ -460,11 +461,16 @@ async function start_roon() {
 						log && console.log("UPDATING RESOLUTION",player.name,player.resolution)
 						await build_devices(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to build devices")})
 					}
-					if (player.type){
-						player.sound_mode =  settings.values["M"+player.pid.toString()]
-						delete (settings.values["M"+player.pid.toString()])
+					if (Array.isArray(player.PWR)){
+						if (player.autoplay !== l.values["A"+player.pid]){
+							player.auto_play =  l.values["A"+player.pid]
+							rheos_players.set(player.pid,player)
+							myplayers= [...rheos_players.values()]	
+							delete (settings["A"+player.pid])
+						}	
 					}
-					delete(mysettings[player.pid])
+					delete (mysettings[player.pid])
+					delete (mysettings["A"+player.pid])
 				}
 				if (Array.isArray(myfixed_groups)){
 					for await (let group of myfixed_groups){
@@ -487,7 +493,8 @@ async function start_roon() {
 								delete mysettings[group.sum_group]
 								remove_fixed_group(group.sum_group)
 							}
-						}	
+						}
+
 					delete mysettings[fg[1].sum_group.toString()]
 					}
 				}
@@ -518,12 +525,9 @@ async function start_roon() {
 				roon.save_config("players",[...rheos_players.values()].map((o) => {let {gid,Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));	
 			}
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
-		
-		
-		
 		}
 	})
-	console.log("INITIATING SERVICES")
+	log && console.log("INITIATING SERVICES")
 	roon.init_services({
 		required_services: [RoonApiTransport], provided_services: [	svc_status,	svc_settings, svc_source_control,svc_volume_control], 
 	})
@@ -840,7 +844,7 @@ async function update_control (name,ip,present){
 }
 async function kill_avr_output(pid){
 	const hex = (pid.toString(16))	
-	if (rheos.processes[hex].pid){
+	if (rheos.processes[hex]?.pid){
 		process.kill( Number(rheos.processes[hex]?.pid),'SIGKILL') 
 		delete rheos.processes[hex]
 	}	
@@ -902,14 +906,16 @@ async function update_zones(zones){
 				const old_zone =  rheos_zones.get(z?.zone_id)
 				const fixed = ([...fixed_groups.values()].find(group => z.outputs[z.outputs.length -1]?.source_controls[0].display_name == group.display_name));
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
-				if (index === 0 ){	
-					let player = rheos_outputs.get(op.output_id)?.player
-					svc_transport.ungroup_outputs(z.outputs)
+				const player = rheos_outputs.get(op.output_id)?.player
+				if (index === 0 ){					
 					if (Array.isArray(player?.PWR)){
 						block_avr_update = true
 						player.PWR = await control_avr(player?.ip,"PW?")
 						if (Array.isArray(player.PWR) && player.PWR.includes("PWSTANDBY")){
 							await control_avr(player.ip,"PWON")
+							if (Number(player.auto_play )> -1){
+								setTimeout((output)=> {svc_transport.control(svc_transport.zone_by_output_id(output),'play')},player.auto_play*1000,z.outputs[0].output_id)
+							} 
 						} else {
 							await control_avr(player.ip,"PWSTANDBY")
 						}
@@ -931,10 +937,12 @@ async function update_zones(zones){
 							group && svc_transport.group_outputs(group)
 						}
 					}
-				}
-				else if (index > 0) {
+				} else if (avr_control && index > 0 && player?.type == "AVR") {
 					const op_name = get_output_name(z.outputs[index])
 					if(op_name.includes("​")){
+						block_avr_update = true
+						svc_transport.ungroup_outputs([z.outputs[index]])
+						
 						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == op_name	)		
 						if (control){
 							let {state : {pid,ip,index}} = control[1]	
@@ -942,7 +950,8 @@ async function update_zones(zones){
 							if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
 								await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
 							}
-						}		
+						}	
+						block_avr_update = false	
 					}
 				}
 				if (fixed_control && fixed?.gid){
@@ -950,6 +959,13 @@ async function update_zones(zones){
 					let zone_outputs = fixed.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
 					zone_outputs.push(op)
 					zone_outputs = zone_outputs.filter(Boolean)
+					log && console.log(
+						"FIXED GROUP ZONE UPDATE",
+						"\n\tNAME",z.display_name,
+						"\n\tZ STATE ",z?.state,
+						"\n\tZ NOW PLAYING", z?.now_playing?.one_line?.line1,
+						"\n\tPENDING",group_pending?.length
+					)
 					if (((z.state == "playing" || z.state == "loading") && z.now_playing) && z.outputs.length == 1 ){
 						svc_transport.transfer_zone( z,svc_transport.zone_by_output_id(zone_outputs[0].output_id))
 						svc_transport.control(svc_transport.zone_by_output_id(zone_outputs[0].output_id),"play")
@@ -966,9 +982,12 @@ async function update_zones(zones){
 							group_pending.shift()
 						}	
 					}
-					if (!group_pending.length && fixed?.gid && (z.state == "paused" || z.state == "stopped" )  && z.outputs.length >1 ){
+					if (index == -1 && !group_pending.length  && (z.state == "paused" || z.state == "stopped" )  && z.outputs.length >1 ){
 						svc_transport.ungroup_outputs(z.outputs)
-					}	   
+						group_pending.length = 0
+					}	
+					
+
 				}	
 				const group = (rheos_groups.get(get_pid(z.outputs[0]?.source_controls[0]?.display_name)))
 				const old_roon_group = old_zone?.outputs?.map(output => get_pid(output?.source_controls[0]?.display_name))
@@ -1267,7 +1286,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.4-0",
+		display_version: "0.8.4-2",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1334,7 +1353,7 @@ async function connect_roon() {
 			})
 		},
 		core_unpaired: async function (core) {
-			log && console.log("⚠ UNPAIRED")
+			console.error(new Date().toLocaleString(),"⚠ UNPAIRED")
             paired = false
 			core = undefined
 		}
@@ -1397,18 +1416,28 @@ function makelayout(settings) {
 		l.layout.push(_players_status)
 	}
 	if (mysettings.avr_control){
-		let _avrs = { type: "group", title: "RECEIVERS", subtitle: "Set default mode for Denon/Marantz AVRs", collapsable: true, items: [] };
+		let _avrs = { type: "group", title: "AUTO PLAY", subtitle: "Set for devices with power ON/OFF", collapsable: true, items: [] };
 		for (let player of rheos_players) {
-			if (player[1].type === "AVR") {
-				let values = []
-				sound_modes.forEach(mode => values.push({value: mode, title: to_title_case(mode.slice(2)) }))
-				_avrs.items.push({title: player[1].name,type: "dropdown",values: values, setting: "M"+player[1].pid.toString()})
+			if (Array.isArray(player[1].PWR)) {
+				let values = [
+					{title : "OFF", value :"-1"},
+					{title : "No-Delay", value :"0"},
+					{title : "①", value :"1"},
+					{title : "②", value :"2"},
+					{title : "③", value :"3"},
+					{title : "⑤", value :"5"},
+					{title : "⑧", value :"8"},
+					{title : "⑩", value :"10"},
+					{title : "⑮", value :"15"},
+					{title : "⑳", value :"20"},
+				]
+				_avrs.items.push({title: player[1].name, subtitle: "Set delay (secs)",type: "dropdown",values: values, setting: "A"+player[1].pid.toString()})
 			}
 		}
 		l.layout.push(_avrs)
 	}
 	if (mysettings.fixed_control){
-		let _fixed_groups = { type: "group", title: "GROUPS", subtitle: "Create fixed groups of players", collapsable: true, items: [] };
+		let _fixed_groups = { type: "group", title: "FIXED GROUPS", subtitle: "Create fixed groups of players", collapsable: true, items: [] };
 		_fixed_groups.items.push(
 			{ title: "Max Safe Fixed_Group Volume", type: "integer", setting: 'max_safe_vol', min: 0, max: 100 }	
 		)
