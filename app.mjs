@@ -1,4 +1,4 @@
-const version = "0.8.4-3"
+const version = "0.8.4-4"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -1254,12 +1254,17 @@ async function update_heos_groups() {
 					p && (p.gid = group.gid)
 				}
 				rheos_groups.set(group.gid, group)	;
+
 			}
 			const remove = old_groups.filter(group => !rheos_groups.has(group))
-			svc_transport.ungroup_outputs(rheos_zones.get((rheos_players.get(remove[0])?.zone))?.outputs)
+			for (let group of remove){
+				svc_transport.ungroup_outputs(svc_transport.zone_by_output_id(rheos_players.get(group)?.output)?.outputs)
+			}
 		} else {
             const remove = old_groups
-			svc_transport.ungroup_outputs(rheos_zones.get((rheos_players.get(remove[0])?.zone))?.outputs)
+			for (let group of remove){
+				svc_transport.ungroup_outputs(svc_transport.zone_by_output_id(rheos_players.get(group)?.output)?.outputs)
+			}
 		}
 		await get_all_groups()
 		resolve()
@@ -1271,7 +1276,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.4-3",
+		display_version: "0.8.4-4",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1407,14 +1412,26 @@ function makelayout(settings) {
 				let values = [
 					{title : "OFF", value :"-1"},
 					{title : "No-Delay", value :"0"},
-					{title : "①", value :"1"},
-					{title : "②", value :"2"},
-					{title : "③", value :"3"},
-					{title : "⑤", value :"5"},
-					{title : "⑧", value :"8"},
-					{title : "⑩", value :"10"},
-					{title : "⑮", value :"15"},
-					{title : "⑳", value :"20"},
+					{title : "1", value :"1"},
+					{title : "2", value :"2"},
+					{title : "3", value :"3"},
+					{title : "4", value :"4"},
+					{title : "5", value :"5"},
+					{title : "6", value :"6"},	
+					{title : "7", value :"7"},
+					{title : "8", value :"8"},
+					{title : "9", value :"9"},
+					{title : "10", value :"10"},
+					{title : "11", value :"11"},
+					{title : "12", value :"12"},
+					{title : "13", value :"13"},
+					{title : "14", value :"14"},
+					{title : "15", value :"15"},
+					{title : "16", value :"16"},
+					{title : "17", value :"17"},
+					{title : "18", value :"18"},
+					{title : "19", value :"19"},
+					{title : "20", value :"20"}
 				]
 				_avrs.items.push({title: player[1].name, subtitle: "Set delay (secs)",type: "dropdown",values: values, setting: "A"+player[1].pid.toString()})
 			}
