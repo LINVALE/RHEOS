@@ -1,4 +1,4 @@
-const version = "0.8.4-2"
+const version = "0.8.4-3"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -96,6 +96,7 @@ async function add_listeners() {
 			for (const group of [...rheos_groups.values()]) {
 				if (pending == group.sum_group){
 					svc_transport.control(pending_zone,'play')
+					group_pending.shift()
 				}
 				const players =	group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} )	
 				const zone = svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output);
@@ -907,6 +908,7 @@ async function update_zones(zones){
 				const fixed = ([...fixed_groups.values()].find(group => z.outputs[z.outputs.length -1]?.source_controls[0].display_name == group.display_name));
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
 				const player = rheos_outputs.get(op.output_id)?.player
+		
 				if (index === 0 ){					
 					if (Array.isArray(player?.PWR)){
 						block_avr_update = true
@@ -941,9 +943,8 @@ async function update_zones(zones){
 					const op_name = get_output_name(z.outputs[index])
 					if(op_name.includes("​")){
 						block_avr_update = true
-						svc_transport.ungroup_outputs([z.outputs[index]])
-						
-						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == op_name	)		
+						svc_transport.ungroup_outputs([z.outputs[index]]);
+						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == op_name)		
 						if (control){
 							let {state : {pid,ip,index}} = control[1]	
 							let avr_status = rheos_players.get(pid).status
@@ -956,38 +957,22 @@ async function update_zones(zones){
 				}
 				if (fixed_control && fixed?.gid){
 					const op = z.outputs[0]
+					const output = rheos_players.get(fixed.gid).output
 					let zone_outputs = fixed.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
 					zone_outputs.push(op)
 					zone_outputs = zone_outputs.filter(Boolean)
-					log && console.log(
-						"FIXED GROUP ZONE UPDATE",
-						"\n\tNAME",z.display_name,
-						"\n\tZ STATE ",z?.state,
-						"\n\tZ NOW PLAYING", z?.now_playing?.one_line?.line1,
-						"\n\tPENDING",group_pending?.length
-					)
-					if (((z.state == "playing" || z.state == "loading") && z.now_playing) && z.outputs.length == 1 ){
-						svc_transport.transfer_zone( z,svc_transport.zone_by_output_id(zone_outputs[0].output_id))
-						svc_transport.control(svc_transport.zone_by_output_id(zone_outputs[0].output_id),"play")
-						group_pending.length = 0
-						group_pending.push([z,zone_outputs[0].output_id])
+					if (z.outputs.length == 1){
+						if (z.is_pause_allowed ){
+							svc_transport.transfer_zone( z,svc_transport.zone_by_output_id(output))
+							group_pending.push([z,output])
+						}
+						else if (group_pending.length && (z.outputs.findIndex(o => o.output_id == group_pending[0][1] >-1)) && z.now_playing?.image_key == group_pending[0][0]?.now_playing?.image_key ) {
+							svc_transport.group_outputs(zone_outputs)
+						}
 					}
-					if (group_pending.length && (z.outputs.findIndex(o => o.output_id == group_pending[0][1] >-1)) && z.now_playing && z.now_playing?.one_line.line1 == group_pending[0][0]?.now_playing?.one_line.line1 ) {
-						svc_transport.group_outputs(zone_outputs)
-					}
-					if (group_pending.length && (get_zone_group_value(z) == fixed.sum_group) && ([...rheos_groups.values()].findIndex(o => o.sum_group == fixed.sum_group)>-1)){
-                        if (z?.is_play_allowed && z?.state !== "playing" && z?.state !== "loading") {
-							svc_transport.control(z,"play")	
-						} else if (z.state == "playing"){
-							group_pending.shift()
-						}	
-					}
-					if (index == -1 && !group_pending.length  && (z.state == "paused" || z.state == "stopped" )  && z.outputs.length >1 ){
+					else if (group_pending.length == 0 && z?.is_play_allowed && (get_zone_group_value(z) == fixed.sum_group) && index == -1 ){
 						svc_transport.ungroup_outputs(z.outputs)
-						group_pending.length = 0
 					}	
-					
-
 				}	
 				const group = (rheos_groups.get(get_pid(z.outputs[0]?.source_controls[0]?.display_name)))
 				const old_roon_group = old_zone?.outputs?.map(output => get_pid(output?.source_controls[0]?.display_name))
@@ -1286,7 +1271,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.4-2",
+		display_version: "0.8.4-3",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
