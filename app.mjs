@@ -1,4 +1,4 @@
-const version = "0.8.4-4"
+const version = "0.8.4-5"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -627,6 +627,7 @@ async function connect_avr(pid){
 		avr.sound_mode = sm[0]
 		return("AVR")						    
 	} else { 
+		log && console.log(avr.name.toUpperCase(), "ZONE 2 NOT DETECTED")
 		avr.type = undefined;
 		return(undefined)
 	}
@@ -907,10 +908,11 @@ async function update_zones(zones){
 				const old_zone =  rheos_zones.get(z?.zone_id)
 				const fixed = ([...fixed_groups.values()].find(group => z.outputs[z.outputs.length -1]?.source_controls[0].display_name == group.display_name));
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
-				const player = rheos_outputs.get(op.output_id)?.player
-		
-				if (index === 0 ){					
-					if (Array.isArray(player?.PWR)){
+				
+		        const output = z.outputs[index]
+				const player = rheos_outputs.get(output?.output_id)?.player
+				if (index>-1 ){		
+					if (Array.isArray(player?.PWR)&& !output?.source_controls[0]?.display_name?.includes("​")){
 						block_avr_update = true
 						player.PWR = await control_avr(player?.ip,"PW?")
 						if (Array.isArray(player.PWR) && player.PWR.includes("PWSTANDBY")){
@@ -922,12 +924,25 @@ async function update_zones(zones){
 							await control_avr(player.ip,"PWSTANDBY")
 						}
 						block_avr_update = false
-					} 
+					} else if (avr_control && output.source_controls[0]?.display_name.includes("​")){
+						block_avr_update = true
+						svc_transport.ungroup_outputs([z.outputs[index]]);
+						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == get_output_name(output)	)	
+						if (control){
+							let {state : {pid,ip,index}} = control[1]	
+							let avr_status = rheos_players.get(pid).status
+							if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
+								await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
+							}
+						}	
+						block_avr_update = false	
+					}
 					
-				} else if ( avr_control && z.outputs.length == 1 && name.includes("​")){
+				} else 	if ( avr_control && z.outputs.length == 1 && name.includes("​")){
 					const control  = Object.values(avr_zone_controls).find(o => o.state.display_name == name)
 					if (control){
-						let {update_state, state : {pid,index,status,display_name,control_key}} = control
+						block_avr_update = true
+						let {update_state, state : {pid,status}} = control
 						if (status === "deselected"){
 							!op.display_name || op.display_name == "Unnamed" || await kill_avr_output((Math.abs(control.state.pid)+(control.state.index)))
 							update_state({supports_standby: true, status :"standby" })
@@ -938,23 +953,9 @@ async function update_zones(zones){
 							group && group.push(z.outputs[0])
 							group && svc_transport.group_outputs(group)
 						}
+						block_avr_update = false
 					}
-				} else if (avr_control && index > 0 && player?.type == "AVR") {
-					const op_name = get_output_name(z.outputs[index])
-					if(op_name.includes("​")){
-						block_avr_update = true
-						svc_transport.ungroup_outputs([z.outputs[index]]);
-						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == op_name)		
-						if (control){
-							let {state : {pid,ip,index}} = control[1]	
-							let avr_status = rheos_players.get(pid).status
-							if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
-								await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
-							}
-						}	
-						block_avr_update = false	
-					}
-				}
+				}  
 				if (fixed_control && fixed?.gid){
 					const op = z.outputs[0]
 					const output = rheos_players.get(fixed.gid).output
@@ -1276,7 +1277,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.4-4",
+		display_version: "0.8.4-5",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
