@@ -1,4 +1,4 @@
-const version = "0.8.4-5"
+const version = "0.8.4-6"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -15,7 +15,7 @@ import xml2js, { parseStringPromise } from "xml2js"
 import util from "node:util"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-var roon, paired = false,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
+var roon, paired = false, awaiting_group_volume = false,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
 const fixed_groups = new Map()
 const all_groups = new Map()
 const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
@@ -127,7 +127,7 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid), output = rheos_outputs.get(player?.output)
-			if (output && paired){
+			if (output && paired && ! awaiting_group_volume){
 				if (mute != player.volume.mute) {
 					player.volume.mute = mute
 					svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
@@ -153,6 +153,7 @@ async function add_listeners() {
 					svc_transport.mute(fixed_zone?.outputs[fixed_zone.outputs.length -1], (mute == 'on' ? 'mute' : 'unmute'))	
 				}
 			}
+			awaiting_group_volume = false
 		})	
 }
 async function discover_devices() {
@@ -316,7 +317,7 @@ async function compare_players(){
 		delp.forEach( (d)=>{
 			rheos_players.delete(d)
 			if (rheos.processes[d]?.pid){
-				process.kill(Number(rheos.processes[d].pid))
+				process.kill(Number(rheos.processes[d].pid),'SIGKILL')
 				delete rheos.processes[d]	
 			}
 		})
@@ -354,30 +355,25 @@ async function create_player(pid) {
 }
 async function load_fixed_groups(){
 	fixed_groups.size &&
-	[...fixed_groups.entries()].forEach( async fg => {
+	[...fixed_groups.values()].forEach( async fg => {
 			create_fixed_group(fg).catch(()=> {})
 	})
 	return
 }
 async function create_fixed_group(group){
-	await group_enqueue(group[1].gid)
-	const fixed = Math.abs(group[1].sum_group).toString(16);
-	if (rheos.processes[fixed]?.pid){
-		try { 
-			process.kill( rheos.processes[fixed]?.pid,'SIGKILL') 
-			fixed_groups.delete(group[1].sum_group)
-			all_groups.delete(group[1].sum_group)
-		} catch { console.error(new Date().toLocaleString(),"⚠ UNABLE TO DELETE PROCESS FOR",group)}	
+	const fixed = Math.abs(group.sum_group).toString(16);
+    const name = [... new Set(group.name.split("+"))]
+	group.display_name = "🔗 " +name[0].trim()+" + " + (name.length -1)
+	mysettings[group.sum_group.toString()]=[group.resolution]
+	if (! fixed_groups.has(group.sum_group)){
+		fixed_groups.set(group.sum_group,group)
+		mysettings[group.sum_group.toString()]=[group.resolution]
+		myfixed_groups.push(group)
 	}
-    const name = group[1].name.split("+")
-	const display_name = "🔗 " +name[0].trim()+" + " + (name.length -1)
-	group[1].display_name = display_name
-	fixed_groups.set(group[1].sum_group,group[1])
-	mysettings[group[1].sum_group.toString()]=[group[1].resolution]
-	myfixed_groups.findIndex(g => g.sum_group === group[1].sum_group) > -1 || myfixed_groups.push(group[1])
-	const mac = "bb:bb:bb:"+ fixed.replace(/..\B/g, '$&:').slice(1,7)
-	rheos.processes[fixed] = spawn(squeezelite,["-a","24","-r",group[1].resolution +" : 500","-M",display_name,"-m", mac,"-o","-","-p","99","-W","-v"])
-	await get_all_groups()
+	if (! rheos.processes[fixed]){	
+		const mac = "bb:bb:bb:"+ fixed.replace(/..\B/g, '$&:').slice(1,7)
+		rheos.processes[fixed] = spawn(squeezelite,["-a","24","-r",group.resolution +" : 500","-M",group.display_name,"-m", mac,"-o","-","-p","99","-W","-v"])
+	}
 	return
 }
 async function create_fixed_group_control(){
@@ -402,12 +398,20 @@ async function create_fixed_group_control(){
 	Object.keys(fixed_group_control).length === 0 && (fixed_group_control = svc_source_control.new_device(controller))
 	return
 }
-async function remove_fixed_group(g) {
-	try { 	
-		process.kill(rheos.processes[Math.abs(g).toString(16)].pid)
-	}
-	catch { }	
-		await get_all_groups()
+async function remove_fixed_group(g) {	
+		let index = myfixed_groups.findIndex(group => g == group.sum_group) 
+		if (index > -1 ){
+			let output = [...rheos_outputs.values()].find(o =>o.source_controls[0].display_name == myfixed_groups[index].display_name)
+			if (output){
+				fixed_groups.delete(g)		
+				delete mysettings[g]
+				svc_transport.ungroup_outputs([output])
+				myfixed_groups.splice(index,1)
+				process.kill(Number(rheos.processes[Math.abs(g).toString(16)].pid),'SIGKILL')
+				delete rheos.processes[Math.abs(g).toString(16)]
+			}
+			    
+		}
    	return 
 }
 async function start_roon() {
@@ -446,14 +450,15 @@ async function start_roon() {
 			let l = makelayout(settings.values)
 			if (!isdryrun && !l.has_error) {
 				if (mysettings.clear_settings) {
+					log && console.log("RESETTING TO DEFAULTS")
 					mysettings.clear_settings = false; mysettings = def.settings
+					const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
 				} 
 				if (mysettings.upnp_ip !== settings.upnp_ip){
 					for await (let player of [...rheos_players.values()]){		
 					     create_player(player.pid)
 					}
 				}
-				mysettings = settings.values
 				for await (let player of [...rheos_players.values()]){		
 					if(player.resolution !== l.values[player.pid] ){
 						player.resolution = l.values[player.pid] || "CD"
@@ -473,30 +478,12 @@ async function start_roon() {
 					delete (mysettings[player.pid])
 					delete (mysettings["A"+player.pid])
 				}
-				if (Array.isArray(myfixed_groups)){
-					for await (let group of myfixed_groups){
-						if(group.resolution !== l.values[group.sum_group] ){
-							group.resolution = l.values[group.sum_group] 
-							fixed_groups.get(group.sum_group).resolution = group.resolution
-						}
-						delete(myfixed_groups[group.sum_group])
-					}	
-					for await (let fg of all_groups){		
-						let index = myfixed_groups.findIndex(f => f.sum_group == fg[1].sum_group) 
-						if (index === -1){
-							fg[1].resolution = settings.values[fg[1].sum_group]	
-							await create_fixed_group(fg)
-						} else {
-							let group = myfixed_groups[index]
-							if (myfixed_groups[index].resolution == -1){
-								myfixed_groups.splice(index,1)
-								fixed_groups.delete(group.sum_group)
-								delete mysettings[group.sum_group]
-								remove_fixed_group(group.sum_group)
-							}
-						}
-
-					delete mysettings[fg[1].sum_group.toString()]
+				for await (const group of all_groups){
+					group[1].resolution = settings.values[group[1].sum_group.toString()] 
+					if (settings.values[group[0]] >-1 ){
+						create_fixed_group(group[1])
+					} else {	
+						remove_fixed_group(group[0])
 					}
 				}
 				fixed_control = mysettings.fixed_control = settings.values.fixed_control
@@ -830,7 +817,7 @@ async function create_avr_controls(player){
 				if (avr_zone_controls[(Math.abs(player.pid)+3).toString()] ) {
 					console.log("ALREADY CREATED SOUND CONTROLLER")
 				} else {
-					console.log("CREATING SOUND MODE ",controller.state.display_name)
+					log && console.log("CREATING SOUND MODE ",controller.state.display_name)
 					avr_zone_controls[(Math.abs(player.pid)+3).toString()]	= svc_source_control.new_device(controller)
 					avr_zone_controls[(Math.abs(player.pid)+3).toString()].state = controller.state
 					avr_zone_controls[(Math.abs(player.pid)+3).toString()].update_state(controller.state)
@@ -872,7 +859,9 @@ async function update_outputs(outputs,added,zone,avr,player){
 					    const zone = svc_transport.zone_by_output_id(op.output_id)
 						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(zone))
 						if (group) {
-						  group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
+							awaiting_group_volume = true
+						  	Joshualane307
+							Joshualane307group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
@@ -908,7 +897,6 @@ async function update_zones(zones){
 				const old_zone =  rheos_zones.get(z?.zone_id)
 				const fixed = ([...fixed_groups.values()].find(group => z.outputs[z.outputs.length -1]?.source_controls[0].display_name == group.display_name));
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))
-				
 		        const output = z.outputs[index]
 				const player = rheos_outputs.get(output?.output_id)?.player
 				if (index>-1 ){		
@@ -956,7 +944,7 @@ async function update_zones(zones){
 						block_avr_update = false
 					}
 				}  
-				if (fixed_control && fixed?.gid){
+				if (fixed_control && fixed?.gid ){
 					const op = z.outputs[0]
 					const output = rheos_players.get(fixed.gid).output
 					let zone_outputs = fixed.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
@@ -967,11 +955,11 @@ async function update_zones(zones){
 							svc_transport.transfer_zone( z,svc_transport.zone_by_output_id(output))
 							group_pending.push([z,output])
 						}
-						else if (group_pending.length && (z.outputs.findIndex(o => o.output_id == group_pending[0][1] >-1)) && z.now_playing?.image_key == group_pending[0][0]?.now_playing?.image_key ) {
+						else if (group_pending.length && (z.outputs.findIndex(o => o.output_id == group_pending[0][1] >-1))  && z.now_playing?.image_key == group_pending[0][0]?.now_playing?.image_key ) {
 							svc_transport.group_outputs(zone_outputs)
-						}
+						} 
 					}
-					else if (group_pending.length == 0 && z?.is_play_allowed && (get_zone_group_value(z) == fixed.sum_group) && index == -1 ){
+					if (group_pending.length == 0 && z?.is_play_allowed && (get_zone_group_value(z) == fixed.sum_group) && index == -1 ){
 						svc_transport.ungroup_outputs(z.outputs)
 					}	
 				}	
@@ -1277,7 +1265,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHeos.beta",
 		display_name: "Rheos",
-		display_version: "0.8.4-5",
+		display_version: "0.8.4-6",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",

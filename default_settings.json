@@ -17,7 +17,8 @@
         "max_safe_vol" : 70, 
         "avr_control": false,
         "fixed_control" : false,
-        "log_limit" : 1,
+        "log_limit" : 100,
+        "clear_settings" : false,
         "upnp_ip" : ""
         }
     }
