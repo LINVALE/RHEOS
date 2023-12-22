@@ -860,8 +860,7 @@ async function update_outputs(outputs,added,zone,avr,player){
 						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(zone))
 						if (group) {
 							awaiting_group_volume = true
-						  	Joshualane307
-							Joshualane307group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
+						    group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value !== op.volume.value,old_op?.volume.is_muted !== op.volume.is_muted)
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
@@ -886,7 +885,7 @@ async function update_outputs(outputs,added,zone,avr,player){
 			}	
 			resolve()
 		}
-	}).catch(err => console.error(new Date().toLocaleString(),"ERROR UPDATING UOUTPUTS",err))
+	}).catch(err => console.error(new Date().toLocaleString(),"ERROR UPDATING OUTPUTS",err))
 }
 async function update_zones(zones){
 	return new Promise(async function (resolve) {
