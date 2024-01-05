@@ -1,4 +1,4 @@
-const version = "0.8.4-6"
+const version = "0.8.4-7"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -40,7 +40,7 @@ const devices = {}
 const log = process.argv.includes("-l")||process.argv.includes("-log") 
 const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIRTUAL"]
 init_signal_handlers()
-await start_up().catch((err) => console.log("ERROR STARTING UP",err))
+await start_up().catch((err) => console.error("⚠ ERROR STARTING UP",err))
 async function start_up(){
 	return new Promise (async function (resolve,reject)	{
 	exec("pkill -f -9 UPnP")
@@ -75,7 +75,6 @@ async function start_up(){
 
 async function add_listeners() {
 	log && console.log("SETTING LISTENERS")
-	process.setMaxListeners(32)
 	rheos_connection[0].socket.setMaxListeners(32)
 	rheos_connection[1].socket.setMaxListeners(32)
 	rheos_connection[1].write("system", "register_for_change_events", { enable: "on" })
@@ -176,7 +175,7 @@ async function discover_devices() {
 		}, 1000
 	)
 	return new Promise(async function (resolve) {
-		const players = await get_players().catch(err => console.log(err))
+		const players = await get_players().catch(err => console.error(err))
 			try {
 				    log && console.log('READING PROFILES')
 					update_status("READING PROFILES",false)
@@ -220,7 +219,7 @@ async function create_root_xml() {
 			try {
 			  	await execFileSync(app, ['-i', './UPnP/Profiles/config.xml', '-b', system_info[0]])
 			} catch (err) {
-				console.log("ERROR CREATING CONFIG XML",err);
+				console.error("ERROR CREATING CONFIG XML",err);
 			}
 			resolve()
 		} 
@@ -234,6 +233,7 @@ async function start_heos(counter = 0) {
 	counter >20 && process.exit(0)
 	return new Promise (async function (resolve,reject){
 		log && console.log("STARTING HEOS")
+		process.setMaxListeners(32)
 		rheos_connection || (rheos_connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000,port:1255, address:system_info[0]}),HeosApi.discoverAndConnect({timeout:10000,port:1256, address:system_info[0]})]))
 		rheos_connection[0].socket.setMaxListeners(32)
 		rheos_connection[1].socket.setMaxListeners(32)
@@ -287,17 +287,17 @@ async function get_players() {
 				case (players.heos.message.unparsed == "command under process"):{
 					rheos_connection[1]
 					.once({ commandGroup: 'player', command: 'get_players' }, (players) => {
-						resolve( players?.payload)}).catch(err => {console.log(err)
+						resolve( players?.payload)}).catch(err => {console.error(err)
 					})
 				} 
 				break
 				case (players?.payload?.length > 16) : {
-					console.log("⚠ LIMIT OF 16  HEOS PLAYERS EXCEEDED ",players.payload.length)
+					console.error("⚠ LIMIT OF 16  HEOS PLAYERS EXCEEDED ",players.payload.length)
 					reject()
 				}
 				break
 				default : {
-					console.log("⚠ ERROR GETTING PLAYERS",players)
+					console.error("⚠ ERROR GETTING PLAYERS",players)
 					reject()
 					process.exit(0)	
 				} 
@@ -454,7 +454,12 @@ async function start_roon() {
 					mysettings.clear_settings = false; mysettings = def.settings
 					const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
 				} 
-				if (mysettings.upnp_ip !== settings.upnp_ip){
+				if (mysettings.upnp_ip !== settings.values.upnp_ip){
+					console.log("UPNP CHANGED",
+					mysettings.upnp_ip,settings.values.upnp_ip
+					
+					)
+					mysettings.upnp_ip = settings.values.upnp_ip
 					for await (let player of [...rheos_players.values()]){		
 					     create_player(player.pid)
 					}
@@ -575,14 +580,14 @@ async function create_zone_controls(err,count=0) {
 		for await (let player of rheos_players){
 			if ((!player[1].model.includes("HEOS"))&&(!player[1].model.includes("Home"))){
 				log && console.log(player.type === "AVR" ? "CONNECTING AVR" : "TESTING IF AVR",player[1].name)
-				err = connect_avr(player[0]).catch(err => console.log(err,"⚠  ERROR CONNECTING AVR",player.name))
+				err = connect_avr(player[0]).catch(err => console.error(err,"⚠  ERROR CONNECTING AVR",player.name))
 				if (err) {failed_connections.push[player[1]]}
 			}
 		} 
 		let i = 0
 		while (failed_connections.length && i< 11){
 			for await (let player of failed_connections){
-				err = await connect_avr(player[0]).catch(()=> {console.log("FAILED TO CONNECT AVR")})
+				err = await connect_avr(player[0]).catch(()=> {console.error("⚠ FAILED TO CONNECT AVR")})
 				err && failed_connections.shift()
 			}	
 			i++
@@ -599,17 +604,17 @@ async function create_zone_controls(err,count=0) {
 }
 async function connect_avr(pid){	
 	let avr = rheos_players.get(pid) 
-	avr.PWR = await control_avr(avr.ip,"PW?").catch((err)=>{console.error(new Date().toLocaleString(),"FAILED TO CONNECT",err)})
+	avr.PWR = await control_avr(avr.ip,"PW?").catch((err)=>{console.error(new Date().toLocaleString(),"⚠ FAILED TO CONNECT",err)})
 	if (Array.isArray (avr.PWR)){
 		log && console.log(avr.name.toUpperCase(), "HAS POWER SWITCH",)
 	}
-	avr.Z2 = await control_avr(avr.ip,"Z2?").catch((err)=>{console.error(new Date().toLocaleString(),"FAILED TO CONNECT",err)})
+	avr.Z2 = await control_avr(avr.ip,"Z2?").catch((err)=>{console.error(new Date().toLocaleString(),"⚠ FAILED TO CONNECT",err)})
 	if (avr_control && Array.isArray (avr.Z2) && avr.Z2.length >1){
 		log && console.log(avr.name.toUpperCase(), "HAS ZONE 2")
-		await create_avr_controls(avr).catch((err)=>{console.log(err)})
+		await create_avr_controls(avr).catch((err)=>{console.error(err)})
 		avr.type = "AVR"
 		avr.status = []	
-		let sm = await control_avr(avr.ip,"MS?").catch((err)=>{console.error(new Date().toLocaleString(),"FAILED TO CONNECT",err)})
+		let sm = await control_avr(avr.ip,"MS?").catch((err)=>{console.error(new Date().toLocaleString(),"⚠ FAILED TO CONNECT",err)})
 		log && console.log(avr.name.toUpperCase(), "SOUND MODE IS",sm[0].slice(2))
 		avr.sound_mode = sm[0]
 		return("AVR")						    
@@ -623,7 +628,7 @@ function monitor_avr_status() {
 	setTimeout(async () => {
 		let avrs = [...rheos_players.values()].filter(p => p.type === "AVR")
 		for await (const avr of avrs){
-			!block_avr_update && avr_control && update_avr_status(avr).catch(() => {console.log("ERROR MONITORING AVR STATUS")})
+			!block_avr_update && avr_control && update_avr_status(avr).catch(() => {console.error("⚠ ERROR MONITORING AVR STATUS")})
 		}
 	  	monitor_avr_status();
 	}, 1000)
@@ -666,7 +671,7 @@ async function update_avr_status(avr){
 					if (op && index == 0){
 						let MV = s.search(/MV\d/) 
 						const level= s.slice(MV+2,MV+4)
-						if (level && level !== op?.volume.value ){
+						if (level && level != op?.volume.value ){
 							svc_transport.change_volume(op,'absolute',level)
 						}	
 						if (status.has("MUON")){
@@ -677,7 +682,7 @@ async function update_avr_status(avr){
 					} else if (op && index == 1){
 						let Z2VOL = s.search(/Z2\d/)
 						const level = s.slice(Z2VOL+2,Z2VOL+4)
-						if (level && level !== op?.volume.value){
+						if (level && level != op?.volume.value){
 							svc_transport.change_volume(op,'absolute',level)
 						}
 						if (status.has("Z2MUON")){
@@ -744,10 +749,10 @@ async function create_avr_controls(player){
 					    avr_zone_controls[(Math.abs(player.pid)+index).toString()].update_state({ status : "indeterminate"})
 						avr_zone_controls[(Math.abs(player.pid)+index).toString()].state.status = "standby"
 						block_avr_update = true
-						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" ).catch(()=>{console.log("ERROR SETTING AVR TO NETWORK")})
-						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" ).catch(()=>{console.log("ERRORSETTING AVR POWER")})
+						await control_avr( this.state.ip,this.state.index == 1 ?  "SINET" : "Z2NET" ).catch(()=>{console.error("⚠ ERROR SETTING AVR TO NETWORK")})
+						await control_avr( this.state.ip,this.state.index == 1 ?  "ZMON" : "Z2ON" ).catch(()=>{console.error("⚠ ERROR SETTING AVR POWER")})
 						block_avr_update = false
-						await update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.log("ERROR UPDATING AVR STATUS")})
+						await update_avr_status(rheos_players.get(this.state.pid)).catch(()=>{console.error("⚠ ERROR UPDATING AVR STATUS")})
 						req.send_complete("Success")
 					}
 				}	
@@ -808,7 +813,7 @@ async function create_avr_controls(player){
 					standby:  async function (req ) {
 						avr_control = 2
 						block_avr_update = true
-						await update_control(this.state.name,this.state.ip,this.state.display_name).catch(() => {console.log("ERROR STANDING BY",this.state.display_name)})	
+						await update_control(this.state.name,this.state.ip,this.state.display_name).catch(() => {console.error("⚠ ERROR STANDING BY",this.state.display_name)})	
 						req.send_complete("Success")
 						avr_control = 1
 						block_avr_update = false
@@ -839,8 +844,8 @@ async function kill_avr_output(pid){
 	}	
 	return
 }
-async function update_outputs(outputs,added,zone,avr,player){
-	return new Promise(async function (resolve,reject) {
+async function update_outputs(outputs,player){
+	return new Promise(async function (resolve) {
 		for await (let op of outputs) {	
 			if (Array.isArray(op?.source_controls)){
 				op.source_controls === false && console.error(new Date().toLocaleString(),"⚠ NO SOURCE CONTROLS",op)
@@ -864,9 +869,9 @@ async function update_outputs(outputs,added,zone,avr,player){
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
-						if (op_name && op_name.includes('​')){
+						if (op && op_name && op_name.includes('​')){
 							const control  = Object.values(avr_zone_controls).find(o => o.state.display_name == get_output_name(op))
-							control.output = op
+							control && (control.output = op)
 							if (op.volume.value !== old_op?.volume?.value) {
 								player?.ip && control_avr(player.ip,(control.state.index === 1 ? "MV" : "Z2")+op.volume.value)
 							}
@@ -885,7 +890,7 @@ async function update_outputs(outputs,added,zone,avr,player){
 			}	
 			resolve()
 		}
-	}).catch(err => console.error(new Date().toLocaleString(),"ERROR UPDATING OUTPUTS",err))
+	}).catch(err => console.error(new Date().toLocaleString(),"⚠ ERROR UPDATING OUTPUTS",err))
 }
 async function update_zones(zones){
 	return new Promise(async function (resolve) {
@@ -985,7 +990,7 @@ async function update_zones(zones){
 			}
 		resolve()
 		}
-	}).catch(err => console.error(new Date().toLocaleString(),err))
+	}).catch(err => console.error(new Date().toLocaleString(),"⚠ ERROR UPDATING ZONES",err))
 }
 async function update_volume(op,player){
 	if (!op?.volume){return}
@@ -1262,9 +1267,9 @@ async function connect_roon() {
 	return new Promise(async function (resolve,reject) {
 	const timer = setInterval(() => console.warn(" ⚠ Please ensure RHEOS is enabled in Settings -> Extensions"), 10000)
 	const roon = new RoonApi({
-		extension_id: "com.RHeos.beta",
+		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.8.4-6",
+		display_version: "0.8.4-7",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
