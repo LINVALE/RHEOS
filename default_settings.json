@@ -11,14 +11,14 @@
         "flac_header": 0,
         "keep_alive": 0,
         "next_delay": 15,
-        "send_coverart": false,
-        "send_metadata": true,
+        "send_coverart": 0,
+        "send_metadata": 0,
         "flow": 0,
         "max_safe_vol" : 70, 
-        "avr_control": false,
-        "fixed_control" : false,
+        "avr_control": 0,
+        "fixed_control" : 0,
         "log_limit" : 100,
-        "clear_settings" : false,
+        "clear_settings" : 0,
         "upnp_ip" : ""
         }
     }
