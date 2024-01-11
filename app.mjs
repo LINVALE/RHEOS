@@ -1,4 +1,4 @@
-const version = "0.8.4-8"
+const version = "0.8.4-9"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -15,7 +15,7 @@ import xml2js, { parseStringPromise } from "xml2js"
 import util from "node:util"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-var roon, paired = false, monitor,awaiting_group_volume = false,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite, avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
+var roon, paired = false, monitor,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite ="squeezelite", avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
 const fixed_groups = new Map()
 const all_groups = new Map()
 const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
@@ -45,7 +45,6 @@ async function start_up(){
 	return new Promise (async function (resolve,reject)	{
 	exec("pkill -f -9 UPnP")
 	exec("pkill -f -9 squeezelite")
-    squeezelite = "squeezelite"
 	log && console.log("STARTING ROON CONNECTIONS")
 	await start_roon().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Roon",err => {throw error(err),reject()}))
 	console.log(system_info.toString(),"Version :",roon.extension_reginfo.display_version)
@@ -87,7 +86,7 @@ async function add_listeners() {
 		})
 		.onClose(async (hadError) => {
 			console.error(new Date().toLocaleString(),"⚠ Listeners closed", hadError)
-			if (hadError) await start_up().catch(err => { console.error(new Date().toLocaleString(),err) })
+			await start_up().catch(err => { console.error(new Date().toLocaleString(),err) })
 		})
 		.onError((err) => console.error(new Date().toLocaleString(),"⚠ HEOS REPORTS ERROR", err))
 		.on({ commandGroup: "event", command: "groups_changed" }, async (res,pending,pending_zone) => {
@@ -115,9 +114,10 @@ async function add_listeners() {
 					}
 				} 
 			}
+			return
 		})
 		.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
-			log && console.log("⚠ PLAYERS HAVE CHANGED")
+			log && console.error("⚠ PLAYERS HAVE CHANGED")
 		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			if ( res.heos.message.parsed.error.includes("Unable to play media")){
@@ -130,7 +130,7 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid), output = rheos_outputs.get(player?.output)
-			if (output && paired & !awaiting_group_volume){
+			if (output && paired ){
 				if (level != player?.volume?.level) {
 					player.volume.level = level
 					svc_transport.change_volume(output, 'absolute', level)
@@ -139,26 +139,27 @@ async function add_listeners() {
 					player.volume.mute = mute
 					svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))		
 				}
-			}	
+			}
+			return	
 		})
 		.on({ commandGroup: "event", command: "group_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute,level,gid } } } } = res, group = rheos_groups.get(gid)
 			if (!group){return}
-			awaiting_group_volume = false
 			let fixed_zone = svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output)
 			if (!fixed_zone) {return}
-			group.volume = {mute : mute, level : level}
-			
-			if ([...fixed_groups.keys()].includes(get_zone_group_value(fixed_zone))){
-            	let output = fixed_zone?.outputs[fixed_zone.outputs.length -1]
-				if (level != output.volume.level){
-					svc_transport.change_volume(fixed_zone?.outputs[fixed_zone.outputs.length -1],'absolute',level)
-				}
-				if ((mute == 'on'!= output.volume.mute) ) {
-					svc_transport.mute(fixed_zone?.outputs[fixed_zone.outputs.length -1], (mute == 'on' ? 'mute' : 'unmute'))	
+			if (group.volume?.level != level || group.volume?.mute != mute){
+				group.volume = {mute : mute, level : level}
+				if ([...fixed_groups.keys()].includes(get_zone_group_value(fixed_zone))){
+					let output = fixed_zone?.outputs[fixed_zone.outputs.length -1]
+					if (level != output.volume.level){
+						svc_transport.change_volume(fixed_zone.outputs[fixed_zone.outputs.length -1],'absolute',level)
+					}
+					if ((mute == 'on'!= output.volume.mute) ) {
+						svc_transport.mute(fixed_zone.outputs[fixed_zone.outputs.length -1], (mute == 'on' ? 'mute' : 'unmute'))	
+					}
 				}
 			}
-			
+			return
 		})	
 }
 async function discover_devices() {
@@ -203,7 +204,7 @@ async function discover_devices() {
 				log && console.error(new Date().toLocaleString(),"UPDATING CONFIG")
 				update_status("PLAYERS HAVE CHANGED - UPDATING CONFIGURATION",false)
 				await create_root_xml().catch(err => {
-					resolve(discover_devices(err))
+					resolve(discover_devices(err).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Discovering Devices",err => {throw error(err),reject()})))
 				})
 				clearInterval(message)
 				rheos.discovery ++
@@ -277,7 +278,7 @@ async function start_heos(counter = 0) {
 async function get_players() {
 	return new Promise(function (resolve, reject) {
 		if (!rheos_connection) {reject("AWAITING CONNECTION")}
-		rheos_connection[1]
+		rheos_connection[0]
 		.write("player", "get_players", {})
 		.once({ commandGroup: 'player', command: 'get_players' }, (players) => {
 			switch(true){
@@ -310,35 +311,6 @@ async function get_players() {
 			}
 		})
 	})
-}
-async function compare_players(){
-	console.log("COMPARING PLAYERS")
-	const old_pids = [...rheos_players.keys()]
-	const new_players = await get_players().catch(() => {console.error(new Date().toLocaleString(),"⚠ UNABLE TO GET PLAYERS TO COMPARE")})
-	if (!new_players) {return}
-	const new_pids = new_players.map(p => p?.pid)
-	const newp =  new_pids.filter(new_pid => !old_pids.includes(new_pid))
-	const delp =  old_pids.filter(old_pid => !new_pids.includes(old_pid))
-	if (delp.length) {
-		delp.forEach( (d)=>{
-			rheos_players.delete(d)
-			if (rheos.processes[d]?.pid){
-				process.kill(Number(rheos.processes[d].pid),'SIGKILL')
-				delete rheos.processes[d]	
-			}
-		})
-	}
-	if (newp.length){
-		newp.forEach(async (p)=> {
-			let player = new_players.find(player => player?.pid == p)
-            const res = await heos_command('player','get_volume',{pid : player?.pid})
-			player.volume = {}
-			player.volume.level = res?.parsed?.level
-			rheos_players.set (p, player)
-			create_player(p)	
-		})
-	} 
-	return
 }
 async function create_player(pid) {
     if (rheos.processes[pid]){
@@ -532,7 +504,6 @@ async function start_roon() {
 					await build_templates().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Templates",err => {throw error(err),reject()}))
 					await build_devices().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Devices",err => {throw error(err),reject()}))
 					mysettings = changed
-					
 				}
 				roon.save_config("settings", changed)
 				roon.save_config("fixed_groups",myfixed_groups)
@@ -670,7 +641,6 @@ async function update_avr_status(avr){
 							if (!op && control[1].state.status !== "selected"){
 								control[1].state.status = "selected"
 								control[1].update_state({supports_standby :false , status : "selected"})
-								
 								await create_avr_zone(avr,index)		
 							}
 						} else if(index == 2 ){
@@ -885,8 +855,7 @@ async function update_outputs(outputs,player){
 					    const zone = svc_transport.zone_by_output_id(op.output_id)
 						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(zone))
 						if (group) {
-							awaiting_group_volume = true
-						    group?.gid &&  await update_group_volume(op,group,old_op?.volume?.value != op.volume.value,old_op?.volume.is_muted != op.volume.is_muted)
+						   group?.gid &&  await update_group_volume(op,group,diff,old_op?.volume.is_muted != op.volume.is_muted)
 						}
 					}
 					else if (player?.type === "AVR" && avr_control) {
@@ -1015,15 +984,17 @@ async function update_zones(zones){
 }
 
 async function update_volume(op,player){
-	//if (!op?.volume){return}
+	if (!op?.volume){return}
 	let {is_muted,value} = op.volume
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
 	if ( level !== value) {
-		await heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
+		player.volume.level = value
+		heos_command("player", "set_volume", { pid: player?.pid, level: value }).catch(err => console.error(new Date().toLocaleString(),err))
 	}
 	if ((mute == 'on' !== is_muted  )) {
-		await heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
+		player.volume.mute = is_muted? "on" : "off"
+	     heos_command("player", "set_mute", { pid: player?.pid, state: is_muted ? "on": "off"}).catch(err => console.error(new Date().toLocaleString(),err))
 	}
 	return
 }
@@ -1053,6 +1024,7 @@ async function update_avr_volume(player,mode,value){
 async function update_group_volume(op,group,vol,mute){
 	vol && heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(new Date().toLocaleString(),err))
 	mute && heos_command("group", "set_mute", { gid: group.gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(new Date().toLocaleString(),err))
+	return
 }
 async function heos_command(commandGroup, command, attributes = {}, timer = 5000) {
 	if (!rheos_connection) {
@@ -1293,7 +1265,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.8.4-8",
+		display_version: "0.8.4-9",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
