@@ -1,4 +1,4 @@
-const version = "0.8.4-9"
+const version = "0.8.4-10"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -103,13 +103,13 @@ async function add_listeners() {
 				const players =	group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} )	
 				const zone = svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output);
 				const new_outputs= players?.map(player => rheos_players.get(player.pid)?.output).filter(Boolean) || []
-				const old_outputs = zone?.outputs.map(output => output?.output_id) || []
+				const old_outputs = zone?.outputs.map(output => !output.source_controls[0].display_name.includes("​") && output?.output_id) || []
 				if (get_zone_group_value(zone) !== get_heos_group_value(group)) {
-					if (new_outputs?.length >1 && new_outputs?.length > old_outputs?.length) {
+					if (new_outputs?.length >1 && new_outputs?.length > (old_outputs.filter (Boolean)).length) {
 						svc_transport.group_outputs(new_outputs)
 					}
 					else {
-						let removed_outputs = old_outputs?.filter(op => !new_outputs?.includes(op))
+						const removed_outputs = old_outputs?.filter(op => !new_outputs?.includes(op))
 						svc_transport.ungroup_outputs(removed_outputs)
 					}
 				} 
@@ -118,6 +118,7 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
 			log && console.error("⚠ PLAYERS HAVE CHANGED")
+			await discover_devices()
 		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			if ( res.heos.message.parsed.error.includes("Unable to play media")){
@@ -749,9 +750,9 @@ async function create_avr_controls(player){
 				}	
 				if (! avr_zone_controls[(Math.abs(player.pid)+index).toString()]){
 					avr_zone_controls[(Math.abs(player.pid)+index).toString()]	= svc_source_control.new_device(controller)	
-				} //else {
+				} else {
 					//avr_zone_controls[(Math.abs(player.pid)+index).toString()].state = controller.state
-				//}
+				}
 				const state = controller.state
 				avr_zone_controls[(Math.abs(player.pid)+index).toString()].state = state
 			}
@@ -866,7 +867,7 @@ async function update_outputs(outputs,player){
 								player?.ip && control_avr(player.ip,(control.state.index === 1 ? "MV" : "Z2")+op.volume.value)
 							}
 							if (op.volume.is_muted != old_op?.volume?.is_muted) {
-								player?.ip &&  control_avr(player.ip,(control.state.index === 1 ? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF"))
+								player?.ip && control_avr(player.ip,(control.state.index === 1 ? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF"))
 							}
 						}
 					}
@@ -930,7 +931,7 @@ async function update_zones(zones){
 							update_state({supports_standby: true, status :"standby" })
 							status = "deselected"
 						}  
-						else if (avr_control &&  status === "selected" && rheos_players.get(pid)){
+						else if (status === "selected" && rheos_players.get(pid)){
 							const  group = svc_transport.zone_by_output_id(rheos_players.get(pid).output)?.outputs
 							group && group.push(z.outputs[0])
 							group && svc_transport.group_outputs(group)
@@ -1096,7 +1097,7 @@ async function build_devices(player) {
 		if (player){
 			let device = result?.squeeze2upnp?.device.find(o => o.name == player.name)
 			console.log("RESETTING PLAYER RESOLUTION",player.name,player.resolution)
-			set_player_resolution(device,player)
+			device && set_player_resolution(device,player)
 		} else {for await (const [index, device] of result?.squeeze2upnp?.device?.entries()) {
 			let player = await get_player_by_name(device.name[0])
 			if (player){
@@ -1167,6 +1168,7 @@ async function choose_binary(name, fixed = false) {
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-armv64':'./UPnP/Bin/RHEOS-arm') 
 		} else if (os.arch() === 'x64'){ 
 			await fs.chmod(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64', 0o555)
+			console.log("BINARY x86-64")
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64')
 		} else if (os.arch() === 'ia32'){
 			await fs.chmod(fixed ?'./UPnP/Bin/squeezelite/squeezelite-i386':'./UPnP/Bin/RHEOS-x86', 0o555)
@@ -1265,7 +1267,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.8.4-9",
+		display_version: "0.8.4-10",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
