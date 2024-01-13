@@ -1,4 +1,4 @@
-const version = "0.8.4-10"
+const version = "0.8.5-0"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -320,7 +320,7 @@ async function create_player(pid) {
 	}
 	const player = rheos_players.get(Number(pid))
 	if (player){
-		console.log("CREATING",player.name)
+		log && console.log("CREATING",player.name)
 		const name = player.name
 		const app = await (choose_binary(name)).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
 		rheos.processes[player.pid] = spawn(app, ['-b', system_info[0], '-Z', '-M', name,
@@ -435,7 +435,7 @@ async function start_roon() {
 					const system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
 				} 
 				if (mysettings.upnp_ip !== settings.values.upnp_ip){
-					console.log("UPNP CHANGED",
+					log && console.log("UPNP CHANGED",
 					mysettings.upnp_ip,settings.values.upnp_ip
 					
 					)
@@ -841,9 +841,9 @@ async function update_outputs(outputs,player){
 		for await (let op of outputs) {	
 			if (Array.isArray(op?.source_controls)){
 				op.source_controls === false && console.error(new Date().toLocaleString(),"⚠ NO SOURCE CONTROLS",op)
-				const op_name = get_output_name(op) 
+				const op_name = get_output_name(op) || ""
 				const old_op = rheos_outputs.get(op.output_id) 
-				const is_fixed = op.source_controls[0].display_name.includes("🔗")
+				const is_fixed = op.source_controls[0].display_name.includes("🔗") ? op.output_id : null
 				const diff = op.volume?.value - old_op?.volume?.value || 0
 				if (op_name.includes("​")){
 					player = (op_name &&  await get_player_by_name(op_name.split("​",1)[0])) || undefined
@@ -854,13 +854,13 @@ async function update_outputs(outputs,player){
 				if (diff || (op.volume?.is_muted != old_op?.volume?.is_muted)){
 					if (is_fixed){ 
 					    const zone = svc_transport.zone_by_output_id(op.output_id)
-						const group = [...fixed_groups.values()].find(fixed => fixed.sum_group == get_zone_group_value(zone))
-						if (group) {
-						   group?.gid &&  await update_group_volume(op,group,diff,old_op?.volume.is_muted != op.volume.is_muted)
-						}
+						if (zone?.outputs.length > 1){
+							
+							const {gid}= [...rheos_players?.values()].find((o) => o.output == zone?.outputs[0].output_id)
+							gid && await update_group_volume(op,gid,diff,old_op?.volume.is_muted != op.volume.is_muted)
+						}	
 					}
-					else if (player?.type === "AVR" && avr_control) {
-						if (op && op_name && op_name.includes('​')){
+					else if (avr_control && player?.type === "AVR" && op_name.includes('​')) {
 							const control  = Object.values(avr_zone_controls).find(o => o.state.display_name == get_output_name(op))
 							control && (control.output = op)
 							if (op.volume.value != old_op?.volume?.value) {
@@ -869,7 +869,6 @@ async function update_outputs(outputs,player){
 							if (op.volume.is_muted != old_op?.volume?.is_muted) {
 								player?.ip && control_avr(player.ip,(control.state.index === 1 ? "MU" : "Z2MU")+(op.volume.is_muted ? "ON" : "OFF"))
 							}
-						}
 					}
 					else if (player) {   
 							await update_volume(op,player)	
@@ -983,7 +982,6 @@ async function update_zones(zones){
 		}
 	}).catch(err => console.error(new Date().toLocaleString(),"⚠ ERROR UPDATING ZONES",err))
 }
-
 async function update_volume(op,player){
 	if (!op?.volume){return}
 	let {is_muted,value} = op.volume
@@ -999,8 +997,6 @@ async function update_volume(op,player){
 	}
 	return
 }
-
-
 async function update_avr_volume(player,mode,value){   
 	if (mode == 'relative'){
 		await heos_command("player", value == 1 ? "volume_up" : "volume_down", { pid: player?.pid, step: 1 }).catch(err => console.error(new Date().toLocaleString(),err))
@@ -1022,9 +1018,9 @@ async function update_avr_volume(player,mode,value){
 	} 
 	return
 }
-async function update_group_volume(op,group,vol,mute){
-	vol && heos_command("group", "set_volume", { gid: group.gid, level: op.volume.value }).catch(err => console.error(new Date().toLocaleString(),err))
-	mute && heos_command("group", "set_mute", { gid: group.gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(new Date().toLocaleString(),err))
+async function update_group_volume(op,gid,vol,mute){
+	vol && heos_command("group", "set_volume", { gid: gid, level: op.volume.value }).catch(err => console.error(new Date().toLocaleString(),err))
+	mute && heos_command("group", "set_mute", { gid: gid, state: op.volume.is_muted ? "on" : "off" }).catch(err => console.error(new Date().toLocaleString(),err))
 	return
 }
 async function heos_command(commandGroup, command, attributes = {}, timer = 5000) {
@@ -1150,7 +1146,6 @@ async function set_player_resolution(device,player){
 	await fs.writeFile("./UPnP/Profiles/" + (device.name[0]) + ".xml", devices.xml_template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	await create_player(player.pid)
 	myplayers.find(o => o.pid == player.pid).resolution = resolution
-	//roon.save_config("settings",mysettings);
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 }
 async function start_listening() {
@@ -1267,7 +1262,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.8.4-10",
+		display_version: "0.8.5-0",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
