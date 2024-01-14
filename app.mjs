@@ -1,4 +1,4 @@
-const version = "0.8.5-0"
+const version = "0.8.5-1"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -185,12 +185,12 @@ async function discover_devices() {
 	return new Promise(async function (resolve) {
 		const players = await get_players().catch(err => console.error(err))
 			try {
-				    log && console.log('READING PROFILES')
-					update_status("READING PROFILES",false)
-					const data = await fs.readFile('./UPnP/Profiles/config.xml', 'utf8')
-					const slim_devices = await parseStringPromise(data)
-					const devices = slim_devices.squeeze2upnp.device.map(d => d.friendly_name[0])
-            	if (players.length && players.every((player) => {return devices.includes(player.name)})){	
+				log && console.log('READING PROFILES',players)
+				update_status("READING PROFILES",false)
+				const data = await fs.readFile('./UPnP/Profiles/config.xml', 'utf8')
+				const slim_devices = await parseStringPromise(data)
+				const devices = slim_devices.squeeze2upnp.device.map(d => d.friendly_name[0])
+				if (players.length == devices.length && players.every((player) => {return devices.includes(player.name)})){	
 					clearInterval(message)
 					log && console.log('PLAYERS UNCHANGED')
 					update_status("PLAYERS UNCHANGED",false)
@@ -198,7 +198,7 @@ async function discover_devices() {
 					rheos.mode = false
 					resolve()
 				} else {
-					log && console.error(new Date().toLocaleString(),"DIFFERENT PLAYERS")
+					log && console.error(new Date().toLocaleString(),"DIFFERENT PLAYERS",players.length,devices.length)
 					throw error
 				}
 			} catch {
@@ -494,9 +494,9 @@ async function start_roon() {
 					monitor_avr_status()
 				}
 				const select= ({
-					host_ip,streambuf_size,	output_size,stream_length,seek_after_pause,	volume_on_play,	volume_feedback,accept_nexturi,flac_header,	keep_alive,	next_delay,	send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,	clear_settings
+					default_player_ip, host_ip,streambuf_size,	output_size,stream_length,seek_after_pause,	volume_on_play,	volume_feedback,accept_nexturi,flac_header,	keep_alive,	next_delay,	send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,	clear_settings
 			    }) => ({
-					host_ip,streambuf_size,	output_size,stream_length,seek_after_pause,	volume_on_play,	volume_feedback,accept_nexturi,flac_header,	keep_alive,	next_delay,	send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,	clear_settings
+					default_player_ip,host_ip,streambuf_size,	output_size,stream_length,seek_after_pause,	volume_on_play,	volume_feedback,accept_nexturi,flac_header,	keep_alive,	next_delay,	send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,	clear_settings
 				})
 				const selected = select(mysettings)
 				const changed = select(settings.values)
@@ -635,7 +635,6 @@ async function update_avr_status(avr){
 			if (avr_control && status.size == 18){
 				let s = [...status].join(" ")
 				let index = 0
-				
 				for await (let control of avrs){
 					const op = rheos_outputs.get(control[1].output?.output_id)
 						if ((index === 0 && (status.has("ZMON") && status.has("SINET"))) || (index ===1 && (status.has("Z2ON") && status.has("Z2NET")) )) { 
@@ -750,9 +749,7 @@ async function create_avr_controls(player){
 				}	
 				if (! avr_zone_controls[(Math.abs(player.pid)+index).toString()]){
 					avr_zone_controls[(Math.abs(player.pid)+index).toString()]	= svc_source_control.new_device(controller)	
-				} else {
-					//avr_zone_controls[(Math.abs(player.pid)+index).toString()].state = controller.state
-				}
+				} 
 				const state = controller.state
 				avr_zone_controls[(Math.abs(player.pid)+index).toString()].state = state
 			}
@@ -953,9 +950,11 @@ async function update_zones(zones){
 							svc_transport.group_outputs(zone_outputs)
 						} 
 					}
-					if (group_pending.length == 0 && z?.is_play_allowed && (get_zone_group_value(z) == fixed.sum_group) && index == -1 ){
+					else if (group_pending.length == 0 && z?.is_play_allowed 
+						
+						){
 						svc_transport.ungroup_outputs(z.outputs)
-					}	
+					}
 				}	
 				const group = (rheos_groups.get(get_pid(z.outputs[0]?.source_controls[0]?.display_name)))
 				const old_roon_group = old_zone?.outputs?.map(output => get_pid(output?.source_controls[0]?.display_name))
@@ -1163,7 +1162,6 @@ async function choose_binary(name, fixed = false) {
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-armv64':'./UPnP/Bin/RHEOS-arm') 
 		} else if (os.arch() === 'x64'){ 
 			await fs.chmod(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64', 0o555)
-			console.log("BINARY x86-64")
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-x86-64':'./UPnP/Bin/RHEOS-x86-64')
 		} else if (os.arch() === 'ia32'){
 			await fs.chmod(fixed ?'./UPnP/Bin/squeezelite/squeezelite-i386':'./UPnP/Bin/RHEOS-x86', 0o555)
@@ -1262,7 +1260,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.8.5-0",
+		display_version: "0.8.5-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1442,7 +1440,7 @@ function makelayout(settings) {
 	l.layout.push({
 		type: "group", title: "UPnP SETTINGS ", subtitle: "Experimental settings for UPnP devices",collapsable: true, items: [
 		
-		{ title: "● Buffer Size", type: "dropdown", setting: 'streambuf_size', values: [{ title: "Small", value: 524288 }, { title: "Medium", value: 524288 * 2 }, { title: 'Large', value: 524288 * 3 }] },
+		{ title: "● Buffer Size", type: "dropdown", setting: 'streambuf_size', values: [{ title: "Small", value: 524288 }, { title: "Medium", value: 524288 * 2 }, { title: 'Large', value: 524288 * 3 },{ title: 'Giant', value: 524288 * 5}] },
 		{ title: "● Output Size", type: "dropdown", setting: 'output_size', values: [{ title: 'Small', value: 4194304 }, { title: 'Medium', value: 4194304 * 2 }, { title: 'Large', value: 4194304 * 3 }] },
 		{ title: "● Stream Length", type: "dropdown", setting: 'stream_length', values: [{ title: "no length", value: -1 }, { title: 'chunked', value: -3 }] },
 		{ title: "● Seek After Pause", type: "dropdown", setting: 'seek_after_pause', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
