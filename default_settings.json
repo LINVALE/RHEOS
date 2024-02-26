@@ -5,7 +5,7 @@
         "streambuf_size": 271440,
         "output_size": 8388608,
         "stream_length": -3,
-        "seek_after_pause": 1,
+        "seek_after_pause": 0,
         "volume_on_play": -1,
         "volume_feedback": 0,
         "accept_nexturi": 0,
