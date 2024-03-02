@@ -1,4 +1,4 @@
-const version = "0.9.0-0"
+const version = "0.9.1-0"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -31,7 +31,6 @@ const group_pending =[]
 const avr_zone_controls = {}
 const avr_volume_controls = {}
 const rheos_connect = RheosConnect.Telnet
-//const builder = new xml2js.Builder({ async: true })
 const devices = {}
 const log = process.argv.includes("-l")||process.argv.includes("-log") 
 const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIRTUAL"]
@@ -1208,7 +1207,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.0-0",
+		display_version: "0.9.1-0",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
