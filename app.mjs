@@ -1,4 +1,4 @@
-const version = "0.9.1-0"
+const version = "0.9.1-1"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -225,7 +225,6 @@ async function set_players(players){
 			player.udn = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")}) || myplayers.find(p => p.pid == player.pid)?.udn ||
 			myplayers.findIndex(p => p.pid == player.pid) > -1 || myplayers.push(player)
 			added.push(player)
-			console.log("CREATING PLAYER",player.name)
 	 		await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
 		}
  	}
@@ -278,9 +277,16 @@ async function create_player(player) {
 		return 
 }
 async function load_fixed_groups(){
-	fixed_groups.size &&
-	[...fixed_groups.values()].forEach( async fg => {
+	myfixed_groups.length &&
+	myfixed_groups.forEach( async fg => {
 			create_fixed_group(fg).catch(()=> {})
+	})
+	return
+}
+async function unload_fixed_groups(){
+	myfixed_groups.length &&
+	myfixed_groups.forEach( async fg => {
+			remove_fixed_group(fg.sum_group,false).catch(()=> {})
 	})
 	return
 }
@@ -292,7 +298,7 @@ async function create_fixed_group(group){
 	if (! fixed_groups.has(group.sum_group)){
 		fixed_groups.set(group.sum_group,group)
 		mysettings[group.sum_group.toString()]=[group.resolution]
-		myfixed_groups.push(group)
+		myfixed_groups.find( g => g.sum_group === group.sum_group) ||myfixed_groups.push(group)
 	}
 	if (! rheos.processes[fixed]){	
 		const mac = "bb:bb:bb:"+ fixed.replace(/..\B/g, '$&:').slice(1,7)
@@ -322,7 +328,7 @@ async function create_fixed_group_control(){
 	Object.keys(fixed_group_control).length === 0 && (fixed_group_control = svc_source_control.new_device(controller))
 	return
 }
-async function remove_fixed_group(g) {	
+async function remove_fixed_group(g,del) {	
 		let index = myfixed_groups.findIndex(group => g == group.sum_group) 
 		if (index > -1 ){
 			let output = [...rheos_outputs.values()].find(o =>o.source_controls[0].display_name == myfixed_groups[index].display_name)
@@ -330,7 +336,7 @@ async function remove_fixed_group(g) {
 				fixed_groups.delete(g)		
 				delete mysettings[g]
 				svc_transport.ungroup_outputs([output])
-				myfixed_groups.splice(index,1)
+				del && myfixed_groups.splice(index,1)
 				process.kill(Number(rheos.processes[Math.abs(g).toString(16)].pid),'SIGKILL')
 				delete rheos.processes[Math.abs(g).toString(16)]
 			}   
@@ -366,6 +372,7 @@ async function start_roon() {
 				mysettings[p.pid] = p.resolution
 				mysettings["A"+p.pid] = p.auto_play
 			})
+			await get_all_groups()
 			mysettings.upnp_ip = mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host
 			Array.isArray(myfixed_groups) && myfixed_groups.forEach(g => {mysettings[g.sum_group] = (g.resolution)})
 			cb(makelayout(mysettings))
@@ -409,34 +416,39 @@ async function start_roon() {
 						update_status(`${player.name} set to ${player.resolution}`,false)
 					}
 					if (Array.isArray(player.PWR)){
-						if (player.autoplay !== l.values["A"+player.pid]){
+						if (player.auto_play !== l.values["A"+player.pid]){
 							player.auto_play =  l.values["A"+player.pid]
 							rheos_players.set(player.pid,player)
 							myplayers= [...rheos_players.values()]	
 							delete (settings["A"+player.pid])
-							console.log("CHANGED PLAYER AUTOPLAY")
 							update_status(`${player.name} autoplay delay set to ${player.auto_play} seconds`,false)
 						}	
 					}
 				}
 				for await (const group of all_groups){
 					group[1].resolution = settings.values[group[1].sum_group.toString()] 
-					if (settings.values[group[0]] >-1 ){
+					if (fixed_control && settings.values[group[0]] >-1 ){
 						create_fixed_group(group[1])
 					} else {	
-						remove_fixed_group(group[0])
+						remove_fixed_group(group[0],true)
 					}
 				}
 				fixed_control = settings.values.fixed_control
-				!fixed_control &&  (myfixed_groups = [])
+				if (fixed_control){
+					await load_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",(err) => {throw error(err),reject()}))
+				} else{
+				  	await unload_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Unloading Fixed Groups",(err) => {throw error(err),reject()}))
+				}
 				avr_control = settings.values.avr_control
-				if (!avr_control){ 
+				if (avr_control){ 
 					let avrs = [...rheos_players.values()].filter(player => player.type == "AVR")
 					for (let avr of avrs){
 						avr_volume_controls[avr.pid]?.update_state({	state: {
 							volume_type:  "number"
 						}})
 					}
+					monitor_avr_status()
+				}else {
 					for (let o of Object.entries(avr_zone_controls)){
 						let zone = svc_transport.zone_by_output_id(o[1]?.output?.output_id)	
 						if (zone?.outputs){
@@ -448,9 +460,7 @@ async function start_roon() {
 						} 	
 					}		
 					clearTimeout(monitor)
-				} else {
-					monitor_avr_status()
-				}
+				} 
 				const select= ({
 					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,clear_settings,refresh_players,upnp_ip
 			    }) => ({
@@ -463,13 +473,8 @@ async function start_roon() {
 					roon.save_config("settings", changed)
 					mysettings = changed
 					exec("pkill -f -9 UPnP")
-					//build_template()
 					set_players([...rheos_players.values()])
-	                let s = "Updated UPnP settings \n\n\r"
-			
-					for ( let o of Object.entries(changed)){
-						 s = s +(o[0].padEnd(25,' . ')+o[1] + "\n\r")
-					}
+	                let s = "Updated settings"
 					update_status(s,false) 
 				}	
 				roon.save_config("fixed_groups",myfixed_groups)
@@ -477,33 +482,13 @@ async function start_roon() {
 			}
 			
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
-			show_display()
+			
 		}
 	})
 	roon.init_services({
 		required_services: [RoonApiTransport], provided_services: [	svc_status,	svc_settings, svc_source_control,svc_volume_control], 
 	})
 	return (roon)
-}
-async function show_display(message = "UPDATING HEOS PLAYERS"){
-	rheos.discovery= 0
-	let RheosStatus
-	let timer = setInterval(() =>{
-		rheos.discovery ++
-		if (rheos.discovery == 50){
-			clearInterval(timer);
-			rheos.discovery = 0;
-		} else {
-		 	RheosStatus =  "_".repeat(150) + " \n \n " + ("⚠ " + ("▓".repeat((rheos.discovery < 49 ? rheos.discovery : 50))+"░".repeat(50-(rheos.discovery <49 ? rheos.discovery : 50)))+ "\n\r") 
-			for (const player of rheos_players.values()) {
-				const { name, ip, model,resolution } = player
-				let quality = (mysettings[player.name])
-				RheosStatus =  RheosStatus + (rheos.discovery<35 ? "◐◓◑◒".slice(rheos.discovery % 4, (rheos.discovery % 4) + 1) + " " : (resolution === "HR" || resolution === "THRU")  ?"◉  " :"◎  " ) + name?.toUpperCase() + " \t " + model + "\t" + ip + "\n"
-				
-			}
-		}
-		update_status(RheosStatus,false)	
-	},35)
 }
 async function control_avr(ip,command,req) {
     avr_buffer[ip] = []
@@ -1061,37 +1046,37 @@ async function set_player_resolution(player){
 			device.mode = ("flc:0,r:48000,s:16").toString().concat(mysettings.flow ? ",flow" : "")
 			device.sample_rate = ['48000']
 	}
-	let template = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-	<squeeze2upnp>
-	  <common>
-	  	<enabled>0</enabled>
-		<streambuf_size>${mysettings.streambuf_size}</streambuf_size>
-		<output_size>${mysettings.output_size}</output_size>
-		<stream_length>${mysettings.stream_length}</stream_length>
-		<codecs>aac,ogg,flc,alc,pcm,mp3</codecs>
-		<forced_mimetypes>audio/mpeg,audio/vnd.dlna.adts,audio/mp4,audio/x-ms-wma,application/ogg,audio/x-flac</forced_mimetypes>
-		<raw_audio_format>raw,wav,aif</raw_audio_format>
-		<L24_format>2</L24_format>
-		<roon_mode>1</roon_mode>
-		<seek_after_pause>${mysettings.seek_after_pause}</seek_after_pause>
-		//<volume_on_play>${mysettings.volume_on_play}</volume_on_play>
-		<flac_header>${mysettings.flac_header}</flac_header>
-		<accept_nexturi>${mysettings.accept_nexturi}</accept_nexturi>
-		<next_delay>${mysettings.next_delay}</next_delay>
-		<keep_alive>${mysettings.keep_alive}</keep_alive>
-		<send_metadata>${mysettings.send_metadata}</send_metadata>
-		<send_coverart>${mysettings.send_coverart}</send_coverart>
-		<flow>${mysettings.flow}</flow>
-		<log_limit>${mysettings.log_limit}</log_limit>
-	  </common>
-	  <device>
-		<udn>${player.udn}</udn>
-		<friendly_name>${device.friendly_name}</friendly_name>
-		<enabled>1</enabled>
-		<mode>f${device.mode}</mode>
-		<sample_rate>${device.sample_rate}</sample_rate>
-	  </device>
-	</squeeze2upnp>`
+	let template = 	`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<squeeze2upnp>
+		<common>
+			<enabled>0</enabled>
+			<L24_format>2</L24_format>
+			<roon_mode>1</roon_mode>
+			<codecs>aac,ogg,flc,alc,pcm,mp3</codecs>
+			<forced_mimetypes>audio/mpeg,audio/vnd.dlna.adts,audio/mp4,audio/x-ms-wma,application/ogg,audio/x-flac</forced_mimetypes>
+			<raw_audio_format>raw,wav,aif</raw_audio_format>
+			<streambuf_size>${mysettings.streambuf_size}</streambuf_size>
+			<output_size>${mysettings.output_size}</output_size>
+			<stream_length>${mysettings.stream_length}</stream_length>
+			<seek_after_pause>${mysettings.seek_after_pause}</seek_after_pause>
+			<volume_on_play>${mysettings.volume_on_play}</volume_on_play>
+			<flac_header>${mysettings.flac_header}</flac_header>
+			<accept_nexturi>${mysettings.accept_nexturi}</accept_nexturi>
+			<next_delay>${mysettings.next_delay}</next_delay>
+			<keep_alive>${mysettings.keep_alive}</keep_alive>
+			<send_metadata>${mysettings.send_metadata}</send_metadata>
+			<send_coverart>${mysettings.send_coverart}</send_coverart>
+			<flow>${mysettings.flow}</flow>
+			<log_limit>${mysettings.log_limit}</log_limit>
+		</common>
+		<device>
+			<enabled>1</enabled>
+			<udn>${player.udn}</udn>
+			<friendly_name>${device.friendly_name}</friendly_name>
+			<mode>f${device.mode}</mode>
+			<sample_rate>${device.sample_rate}</sample_rate>
+		</device>
+		</squeeze2upnp>`
 	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template,{flush:true}).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	myplayers.find(o => o.pid == player.pid).resolution = player.resolution
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
@@ -1207,7 +1192,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.1-0",
+		display_version: "0.9.1-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1306,6 +1291,7 @@ async function get_all_groups(){
 	return all_groups
 }
 function makelayout(settings) {
+	
 	const players = [...rheos_players.values()],
 	ips = players.map(player => new Object({ "title": player.model + ' (' + player.name + ') ' + ' : ' + player.ip, "value": player.ip }))
 	ips.push({ title: "No Default Connection", value: undefined })
@@ -1361,9 +1347,9 @@ function makelayout(settings) {
 	}
 	if (mysettings.fixed_control){
 		let _fixed_groups = { type: "group", title: "FIXED GROUPS", subtitle: "Create fixed groups of players", collapsable: true, items: [] };
-		_fixed_groups.items.push(
-			{ title: "Max Safe Fixed_Group Volume", type: "integer", setting: 'max_safe_vol', min: 0, max: 100 }	
-		)
+		//_fixed_groups.items.push(
+		//	{ title: "Max Safe Fixed_Group Volume", type: "integer", setting: 'max_safe_vol', min: 0, max: 100 }	
+		//)
 		for (let group of all_groups.entries()) {
 			let name = group[1].players.map(player=>player.name).toString()
 			let values = []
