@@ -11,10 +11,8 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import ip from "ip"
 import process, { pid } from "node:process"
-import xml2js, { parseStringPromise } from "xml2js"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-import fetch from 'node-fetch';
 var roon, paired = false, monitor,svc_status, mysettings, group_volume_control,avrs, svc_transport, svc_volume_control, svc_source_control, svc_settings, rheos_connection, myplayers, squeezelite ="squeezelite", avr_control,fixed_control,fixed_group_control = {},myfixed_groups = [],zone_control = {},block_avr_update = false
 const fixed_groups = new Map()
 const all_groups = new Map()
@@ -33,10 +31,11 @@ const group_pending =[]
 const avr_zone_controls = {}
 const avr_volume_controls = {}
 const rheos_connect = RheosConnect.Telnet
-const builder = new xml2js.Builder({ async: true })
+//const builder = new xml2js.Builder({ async: true })
 const devices = {}
 const log = process.argv.includes("-l")||process.argv.includes("-log") 
 const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIRTUAL"]
+suppressExperimentalWarnings(process)
 init_signal_handlers()
 exec("pkill -f -9 UPnP")
 exec("pkill -f -9 squeezelite")
@@ -50,11 +49,9 @@ async function start_up(){
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {throw error(err),reject()}))
 	})
-	await build_template().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Building Template",err => {throw error(err),reject()}))
 	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {throw error(err),reject()}))
 	await start_listening()
 	await create_zone_controls().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",(err) => {throw error(err),reject()}))
-	
 	await update_heos_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Updating HEOS groups",err => {throw error(err),reject()}))
 	await create_fixed_group_control().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Fixed Groups",err => {throw error(err),reject()}))
 	fixed_control && await load_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",(err) => {throw error(err),reject()}))
@@ -229,6 +226,7 @@ async function set_players(players){
 			player.udn = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")}) || myplayers.find(p => p.pid == player.pid)?.udn ||
 			myplayers.findIndex(p => p.pid == player.pid) > -1 || myplayers.push(player)
 			added.push(player)
+			console.log("CREATING PLAYER",player.name)
 	 		await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
 		}
  	}
@@ -405,6 +403,7 @@ async function start_roon() {
 						if (rheos.processes[player.pid]?.pid){
 							process.kill(rheos.processes[player.pid].pid,'SIGKILL')
 						}
+						
 						await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
 						console.log("RESET PLAYER RESOLUTION")
 						let x = console.table([player], ["name", "pid", "model", "ip", "resolution","network","udn"]) 
@@ -465,7 +464,7 @@ async function start_roon() {
 					roon.save_config("settings", changed)
 					mysettings = changed
 					exec("pkill -f -9 UPnP")
-					build_template()
+					//build_template()
 					set_players([...rheos_players.values()])
 	                let s = "Updated UPnP settings \n\n\r"
 			
@@ -1040,40 +1039,7 @@ async function heos_command(commandGroup, command, attributes = {}, timer = 5000
 		})
 	}).catch((err)=> err)
 }
-async function build_template() {
-	devices.xml_template = {}
-	devices.template = {
-		"squeeze2upnp": {
-			"common": [
-				{
-					"enabled": ['0'],
-					"streambuf_size": [mysettings.streambuf_size],
-					"output_size": [mysettings.output_size],
-					"stream_length": [mysettings.stream_length],
-					"codecs": ["aac,ogg,flc,alc,pcm,mp3"],
-					"forced_mimetypes": ["audio/mpeg,audio/vnd.dlna.adts,audio/mp4,audio/x-ms-wma,application/ogg,audio/x-flac"],
-					"mode": [("flc:0,r:-48000,s:16").toString().concat(mysettings.flow ? ",flow" : "")],
-					"raw_audio_format": ["raw,wav,aif"],
-					"sample_rate": ['48000'],
-					"L24_format": ['2'],
-					"roon_mode": ['1'],
-					"seek_after_pause": [mysettings.seek_after_pause],
-					"volume_on_play": [mysettings.volume_on_play],
-					"flac_header": [mysettings.flac_header],
-					"accept_nexturi": [mysettings.accept_nexturi],
-					"next_delay": [mysettings.next_delay],
-					"keep_alive": [mysettings.keep_alive],
-					"send_metadata": [mysettings.send_metadata],
-					"send_coverart": [mysettings.send_coverart],
-					"flow":[mysettings.flow],
-					"log_limit":[mysettings.log_limit]
-				}
-			],
-			"device": []
-		}
-	}
-	return
-}
+
 async function set_player_resolution(player){
 	let device = {} 
 	device.udn = player.udn
@@ -1096,9 +1062,38 @@ async function set_player_resolution(player){
 			device.mode = ("flc:0,r:48000,s:16").toString().concat(mysettings.flow ? ",flow" : "")
 			device.sample_rate = ['48000']
 	}
-	let subtemplate = { "squeeze2upnp": { "common": devices.template.squeeze2upnp.common, "device": [device] } }
-	devices.xml_template = builder.buildObject(subtemplate)
-	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", devices.xml_template,{flush:true}).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
+	let template = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+	<squeeze2upnp>
+	  <common>
+	  	<enabled>0</enabled>
+		<streambuf_size>${mysettings.streambuf_size}</streambuf_size>
+		<output_size>${mysettings.output_size}</output_size>
+		<stream_length>${mysettings.stream_length}</stream_length>
+		<codecs>aac,ogg,flc,alc,pcm,mp3</codecs>
+		<forced_mimetypes>audio/mpeg,audio/vnd.dlna.adts,audio/mp4,audio/x-ms-wma,application/ogg,audio/x-flac</forced_mimetypes>
+		<raw_audio_format>raw,wav,aif</raw_audio_format>
+		<L24_format>2</L24_format>
+		<roon_mode>1</roon_mode>
+		<seek_after_pause>${mysettings.seek_after_pause}</seek_after_pause>
+		//<volume_on_play>${mysettings.volume_on_play}</volume_on_play>
+		<flac_header>${mysettings.flac_header}</flac_header>
+		<accept_nexturi>${mysettings.accept_nexturi}</accept_nexturi>
+		<next_delay>${mysettings.next_delay}</next_delay>
+		<keep_alive>${mysettings.keep_alive}</keep_alive>
+		<send_metadata>${mysettings.send_metadata}</send_metadata>
+		<send_coverart>${mysettings.send_coverart}</send_coverart>
+		<flow>${mysettings.flow}</flow>
+		<log_limit>${mysettings.log_limit}</log_limit>
+	  </common>
+	  <device>
+		<udn>${player.udn}</udn>
+		<friendly_name>${device.friendly_name}</friendly_name>
+		<enabled>1</enabled>
+		<mode>f${device.mode}</mode>
+		<sample_rate>${device.sample_rate}</sample_rate>
+	  </device>
+	</squeeze2upnp>`
+	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template,{flush:true}).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	myplayers.find(o => o.pid == player.pid).resolution = player.resolution
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 }
@@ -1479,5 +1474,14 @@ function to_title_case(str) {
 	  function(txt) {
 		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 	  }
-	);
+	)
 }  
+function suppressExperimentalWarnings (p){
+	const originalEmit = p.emit
+	p.emit = function (event, warning) {
+	  if (event === 'warning' && warning?.name === 'ExperimentalWarning') {
+		return false
+	  }
+		return originalEmit.apply(p, arguments);
+	}
+}

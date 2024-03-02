@@ -5,4 +5,5 @@ common.log
 *.pid
 /UPnP/Profiles
 UPnP/Bin
+node_modules
 

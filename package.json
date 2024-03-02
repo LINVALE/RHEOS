@@ -10,7 +10,6 @@
   "dependencies": {
     "heos-api": "^4.0.0",
     "ip": "^1.1.8",
-    "node-fetch": "^3.3.2",
     "node-roon-api": "github:roonlabs/node-roon-api",
     "node-roon-api-settings": "github:roonlabs/node-roon-api-settings",
     "node-roon-api-source-control": "github:roonlabs/node-roon-api-source-control",
@@ -19,8 +18,7 @@
     "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control",
     "node-upnp-utils": "^1.0.0",
     "node-uuid": "^1.4.8",
-    "telnet-client": "^2.0.8",
-    "xml2js": "^0.6.0"
+    "telnet-client": "^2.0.8"
   },
   "repository": {
     "type": "git",
