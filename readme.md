@@ -12,7 +12,7 @@ A ROON Extension to allow  control of Denon/Marantz HEOS devices from ROON.
 -   🔗 Create fixed groups for ROON outputs. Allows volume  control of all grouped players from ROON interface using single control.
 -   ⇆  Control Denon/Marantz Amplifier Zone power, volumes and select sound modes.
 -   🔊 Does not use AirPlay so can stream at Hi-Resolution for HS2 players.
--   🚫 Written in pure Javascript / Nodejs with limited module dependencies (heos-api, squeeze2UPnP, Xml2js,ip)
+-   🚫 Written in pure Javascript / Nodejs with limited module dependencies (heos-api, squeeze2UPnP,ip)
 
 
 ## Installation
