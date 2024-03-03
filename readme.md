@@ -17,7 +17,7 @@ A ROON Extension to allow  control of Denon/Marantz HEOS devices from ROON.
 
 ## Installation
 
-Install/Update nodejs for your system (tested on Windows, Ubuntu 22.04.1 LTS, and Raspberry pi 4) . This requires at least Node v16.0. [https://nodejs.org/en/download/]
+Install/Update nodejs for your system (tested on Windows, Ubuntu 22.04.1 LTS, and Raspberry pi 4) . This requires at least Node v18.0. [https://nodejs.org/en/download/]
 
 The simplest way to install this is using the roon-extension-manager https://github.com/TheAppgineer/roon-extension-manager 
 Tested with a raspberry pi3 (Ubuntu 32 bit), pi 4(3Ubuntu 2 and 64bit) and NUC (Ubuntu 22.04.1 LTS amd64)
