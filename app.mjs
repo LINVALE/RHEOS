@@ -1,4 +1,4 @@
-const version = "0.9.1-2"
+const version = "0.9.1-3"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -42,12 +42,12 @@ await start_up().catch((err) => console.error("⚠ ERROR STARTING UP",err))
 async function start_up(){
 	return new Promise (async function (resolve,reject)	{
 	await start_roon().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Roon",err => {throw error(err),reject()}))
-	console.log(rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
 	const c = spawn("squeezelite")
 		c.on('error', async function(err) {
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {throw error(err),reject()}))
 	})
+	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
 	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {throw error(err),reject()}))
 	await start_listening()
 	await create_zone_controls().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",(err) => {throw error(err),reject()}))
@@ -111,13 +111,51 @@ async function add_listeners() {
 		.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
 		    await compare_players()
 		})
-		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
-			if ( res.heos.message.parsed.error.includes("Unable to play media")){
-				services.svc_transport.control(rheos_players.get(res.heos.message.parsed.pid)?.zone, 'play')
+		.on({ commandGroup: "event", command: "player_state_changed" }, async (res) => {
+			const {pid,state} = res.heos.message.parsed
+			const player =  rheos_players.get(pid)
+			const op = player?.output
+			if (op && (!player.gid || player.pid === player.gid)){
+				const {zone_id,state:zone_state} = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
+				if (state === "pause"  && zone_state !== "paused"){
+					services.svc_transport.control(zone_id,'pause')
+				}
+				if (state === "play"  && zone_state !== "playing"){
+					services.svc_transport.control(zone_id,'play')
+				}
+				if (state === "stop"  && zone_state !== "stopped"){
+					services.svc_transport.control(zone_id,'stop')
+				}
 			}
-			else {
-				console.error(new Date().toLocaleString(),"⚠ PLAYBACK ERROR - ATTEMPTING TO PLAY AGAIN", res.heos.message.parsed.error)
-				services.svc_transport.control(rheos_players.get(res.heos.message.parsed.pid)?.zone, 'play')
+		})
+		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
+			const {pid,repeat} = res.heos.message.parsed
+			const {zone_id} = services.svc_transport.zone_by_output_id(rheos_players.get(pid)?.output)
+			
+			if (zone_id){
+				switch (repeat)
+				{case "on_all": 
+					services.svc_transport.change_settings(zone_id,{loop: "loop" })
+					break
+				case "on_one":
+					services.svc_transport.change_settings(zone_id,{loop: "loop_one" })
+					break
+				default:	services.svc_transport.change_settings(zone_id,{loop: "disabled" })
+				}
+			}
+		})	
+		.on({ commandGroup: "event", command: "shuffle_mode_changed" }, async (res) => {
+			const {pid,shuffle} = res.heos.message.parsed
+			const {zone_id} = services.svc_transport.zone_by_output_id(rheos_players.get(pid)?.output)
+			if (zone_id){
+				services.svc_transport.change_settings(zone_id,{shuffle : shuffle == "on"  })
+			}
+		})
+		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
+			const op = rheos_players.get(res.heos.message.parsed.pid)?.output
+			if (op && res.heos.message.parsed.error.includes("Unable to play media")){
+				let zone  = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
+				services.svc_transport.control(zone,'play')
 			}
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
@@ -137,7 +175,7 @@ async function add_listeners() {
 		.on({ commandGroup: "event", command: "group_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute,level,gid } } } } = res, group = rheos_groups.get(gid)
 			if (!group){return}
-			let fixed_zone = services.svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output)
+			const fixed_zone = services.svc_transport.zone_by_output_id(rheos_players.get(group.gid)?.output)
 			if (!fixed_zone) {return}
 			if (group.volume?.level != level || group.volume?.mute != mute){
 				group.volume = {mute : mute, level : level}
@@ -221,16 +259,19 @@ async function set_players(players){
 				player.auto_play = "OFF"
 				
 			}
-			player.volume = {}
 			player.udn = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")}) || rheos.myplayers.find(p => p.pid == player.pid)?.udn ||
 			rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
-			added.push(player)
-	 		await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
+			if (player.udn){
+				player.volume = {}
+				player.state = await read_player_status(player.pid)
+				added.push(player)
+	 			await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
+			}
 		}
  	}
 	if (added.length){
 		console.log("ADDED PLAYERS")
-	 	console.table(added, ["name", "pid", "model", "ip", "resolution","network","udn"]) 
+	 	console.table(added, ["name", "pid", "model", "ip", "resolution","network","udn", "state"]) 
 	}	 
 	return
 }
@@ -268,6 +309,10 @@ async function get_players() {
 			}
 		})
 	})
+}
+async function read_player_status(pid){
+	const res = await heos_command("player", "get_play_state",{pid : pid}).catch(err => console.error(new Date().toLocaleString(),err))
+	return(res.parsed.state)
 }
 async function create_player(player) {	
 	const app = await (choose_binary()).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
@@ -647,6 +692,7 @@ async function update_avr_status(avr){
 	})
 }
 async function create_avr_zone(avr,index){	
+	log && console.log("AVR ZONE IS ON",index === 0?  avr?.name + "​ Main​ Zone": avr?.name + "​ Zone​ 2")
 	const hex = ((Math.abs(avr?.pid)+(index+1)).toString(16))
 	if (! rheos.processes[hex]){
 		const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
@@ -658,6 +704,14 @@ async function create_avr_controls(player){
 	player = rheos_players.get(player.pid)
 	if (player){
 		for  (let index = 1; index < 3; index++) {
+			switch (index) {
+				case 1 :
+					log && console.log("CREATING AVR CONTROL",  player?.name +   "​ Main​ Zone")
+				break
+				case 2 :
+					log && console.log("CREATING AVR CONTROL",  player?.name +   "​ Zone​ 2")
+				break		
+			}
 			if (!avr_zone_controls[(Math.abs(player.pid)+index).toString()]){
 				let controller = {    
 					state: {
@@ -1183,7 +1237,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.1-2",
+		display_version: "0.9.1-3",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
