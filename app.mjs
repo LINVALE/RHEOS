@@ -1,4 +1,4 @@
-const version = "0.9.1-3"
+const version = "0.9.1-4"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -60,12 +60,13 @@ async function start_up(){
 	}) .catch(err => console.error(new Date().toLocaleString(),"⚠ Error STARTING UP",(err) => {throw error(err),reject()}))
 }
 async function add_listeners() {
-	rheos.listeners = 'enabled"'
+	rheos.listeners = true
 	rheos.connection[0].socket.setMaxListeners(32)
 	rheos.connection[1].socket.setMaxListeners(32)
 	rheos.connection[1].write("system", "register_for_change_events", { enable: "on" })
 		.onClose(async (hadError) => {
 			console.error(new Date().toLocaleString(),"⚠ Listeners closed", hadError)
+			rheos.listeners = false
 			await start_up().catch(err => { console.error(new Date().toLocaleString(),err) })
 		})
 		.onError((err) => {
@@ -106,7 +107,6 @@ async function add_listeners() {
 					}	
 				} 
 			}
-			return
 		})
 		.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
 		    await compare_players()
@@ -116,7 +116,7 @@ async function add_listeners() {
 			const player =  rheos_players.get(pid)
 			const op = player?.output
 			if (op && (!player.gid || player.pid === player.gid)){
-				const {zone_id,state:zone_state} = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
+				const {zone_id,state:zone_state} = services.svc_transport.zone_by_output_id(op)
 				if (state === "pause"  && zone_state !== "paused"){
 					services.svc_transport.control(zone_id,'pause')
 				}
@@ -131,7 +131,6 @@ async function add_listeners() {
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
 			const {pid,repeat} = res.heos.message.parsed
 			const {zone_id} = services.svc_transport.zone_by_output_id(rheos_players.get(pid)?.output)
-			
 			if (zone_id){
 				switch (repeat)
 				{case "on_all": 
@@ -170,7 +169,6 @@ async function add_listeners() {
 					services.svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))		
 				}
 			}
-			return	
 		})
 		.on({ commandGroup: "event", command: "group_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute,level,gid } } } } = res, group = rheos_groups.get(gid)
@@ -189,10 +187,11 @@ async function add_listeners() {
 					}
 				}
 			}
-			return
 		})	
 }
 async function start_heos(counter = 0) {
+
+	console.log("CONNECTING TO",rheos.system_info[0])
 	return new Promise (async function (resolve,reject){
 		process.setMaxListeners(32)
 		rheos.connection || (rheos.connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000,port:1255, address:rheos.system_info[0]}),HeosApi.discoverAndConnect({timeout:10000,port:1256, address:rheos.system_info[0]})]))
@@ -245,7 +244,7 @@ async function delete_players(players){
 	return
 }
 async function set_players(players){
-	if (!Array.isArray(players)){return}
+	if (!Array.isArray(players) || !players.length){return}
 	const added = []
 	for await (let player of players) {
 		if (player?.pid && typeof(player) === "object") {
@@ -1237,7 +1236,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.1-3",
+		display_version: "0.9.1-4",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1246,7 +1245,7 @@ async function connect_roon() {
 			log && console.log(new Date().toLocaleString()+ " ROON PAIRED ",roon.extension_reginfo.extension_id)
 			log && console.log("ROON SERVER IP ADDRESS",roon.paired_core?.moo?.transport?.host)
 			roon.paired = true
-			rheos.listeners || add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {throw error(err),reject()}))
+			rheos.listeners || 	add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {throw error(err),reject()}))
 			services.svc_transport = core.services.RoonApiTransport
 			services.svc_transport.subscribe_outputs(async function (cmd, data) {		
 				switch (cmd){
