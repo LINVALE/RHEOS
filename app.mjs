@@ -842,7 +842,6 @@ async function update_outputs(outputs,player){
 									let player = rheos_players.get(p.pid)
 									let new_level = (player.volume.level || 0)+ diff
 									if (new_level <= 0) {new_level = 0}
-									console.log(player.name,new_level,op.volume.value)
 									if (new_level>0 && new_level<= op.volume.soft_limit)
 									{	
 										await heos_command("player", "set_volume", { pid: player?.pid, level:  new_level}).catch(err => console.error(new Date().toLocaleString(),err))
