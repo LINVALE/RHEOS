@@ -33,21 +33,22 @@ const avr_zone_controls = {}
 const avr_volume_controls = {}
 const rheos_connect = RheosConnect.Telnet
 const log = process.argv.includes("-l")||process.argv.includes("-log") 
-const squeezelite ="squeezelite"
+let squeezelite ="squeezelite"
 const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIRTUAL"]
 suppressExperimentalWarnings(process)
 init_signal_handlers()
 exec("pkill -f -9 UPnP")
-exec("pkill -f -9 squeezelite")
+
 await start_up().catch((err) => console.error("⚠ ERROR STARTING UP",err))
 async function start_up(){
 	return new Promise (async function (resolve,reject)	{
 	await start_roon().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Roon",err => {throw error(err),reject()}))
-	const c = spawn("squeezelite")
+	let c = spawn("squeezelite")
 		c.on('error', async function(err) {
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {console.error(err),reject()}))
 	})
+	exec("pkill -f -9 squeezelite")
 	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
 	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {console.error(err),reject()}))
 	await start_listening()
