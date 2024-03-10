@@ -38,7 +38,7 @@ const sound_modes = ["MSSTEREO","MSDIRECT","MSPURE DIRECT","MSMCH STEREO","MSVIR
 suppressExperimentalWarnings(process)
 init_signal_handlers()
 exec("pkill -f -9 UPnP")
-
+exec("pkill -f -9 squeezelite")
 await start_up().catch((err) => console.error("⚠ ERROR STARTING UP",err))
 async function start_up(){
 	return new Promise (async function (resolve,reject)	{
@@ -48,7 +48,6 @@ async function start_up(){
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {console.error(err),reject()}))
 	})
-	exec("pkill -f -9 squeezelite")
 	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
 	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {console.error(err),reject()}))
 	await start_listening()
