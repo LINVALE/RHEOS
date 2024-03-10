@@ -1,4 +1,4 @@
-const version = "0.9.2-0"
+const version = "0.9.2-01"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -46,15 +46,15 @@ async function start_up(){
 	const c = spawn("squeezelite")
 		c.on('error', async function(err) {
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
-		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {throw error(err),reject()}))
+		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {console.error(err),reject()}))
 	})
 	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
-	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {throw error(err),resolve()}))
+	await start_heos().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err => {console.error(err),reject()}))
 	await start_listening()
 	await create_zone_controls().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",(err) => {throw error(err),reject()}))
 	await update_heos_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Updating HEOS groups",err => {throw error(err),reject()}))
 	await create_fixed_group_control().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Creating Fixed Groups",err => {throw error(err),reject()}))
-	rheos.mysettings.fixed_control && await load_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",(err) => {throw error(err),reject()}))
+	rheos.mysettings.fixed_control && await load_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",(err) => {console.error(err),reject()}))
 	Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log(to_title_case(o[0].padEnd(20 ,".")),o[1] ? o[1] : o[1]===0 ? 0 : "Not Defined"))
 	rheos.mysettings.avr_control && monitor_avr_status()
 	resolve()
@@ -64,6 +64,7 @@ async function add_listeners() {
 	rheos.listeners = true
 	rheos.connection[0].socket.setMaxListeners(32)
 	rheos.connection[1].socket.setMaxListeners(32)
+
 	rheos.connection[1].write("system", "register_for_change_events", { enable: "on" })
 		.onClose(async (hadError) => {
 			console.error(new Date().toLocaleString(),"⚠ Listeners closed", hadError)
@@ -117,7 +118,6 @@ async function add_listeners() {
 			const player =  rheos_players.get(pid)
 			const op = player?.output
 			if (op && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
-				console.log(player.name,state,player.gid)
 				let zone = services.svc_transport.zone_by_output_id(op) 
 				if (zone){
 					const {zone_id = undefined, state:zone_state = undefined} = zone
@@ -178,15 +178,20 @@ async function add_listeners() {
 }
 async function start_heos(counter = 0) {
 	console.log("CONNECTING TO",rheos.system_info[0])
+	if (counter == 10){ reject()} 
 	return new Promise (async function (resolve,reject){
 		process.setMaxListeners(32)
         console.log("DEFAULT PLAYER IP", rheos.mysettings.default_player_ip || "NOT DEFINED")
 		if (!rheos.connection) {
 			try {
-				rheos.connection = await Promise.all([HeosApi.connect(rheos.mysettings.default_player_ip+"x"),HeosApi.connect(rheos.mysettings.default_player_ip )])
+				rheos.connection = await Promise.all([HeosApi.connect(rheos.mysettings.default_player_ip),HeosApi.connect(rheos.mysettings.default_player_ip )])
+				console.log("CONNECTED TO DEFAULT PLAYER IP", rheos.mysettings.default_player_ip || "NOT DEFINED")
+				
 			} catch {
 				rheos.connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]}),HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]})])
-			}
+			    console.log("CONNECTED TO DISCOVERED PLAYER IP", rheos.mysettings.default_player_ip || "NOT DEFINED")
+			
+			} 
 		}
 		rheos.connection[0].socket.setMaxListeners(32)
 		rheos.connection[1].socket.setMaxListeners(32)
@@ -197,6 +202,7 @@ async function start_heos(counter = 0) {
 			roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 			resolve	()
 		} else {
+			console.error("UNABLE TO EDISCOVER PLAYERS")
 			reject (start_heos(counter ++))
 		}		
 	})
@@ -1250,7 +1256,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.2-0",
+		display_version: "0.9.2-01",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1259,7 +1265,7 @@ async function connect_roon() {
 			log && console.log(new Date().toLocaleString()+ " ROON PAIRED ",roon.extension_reginfo.extension_id)
 			log && console.log("ROON SERVER IP ADDRESS",roon.paired_core?.moo?.transport?.host)
 			roon.paired = true
-			rheos.listeners || 	add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {throw error(err),reject()}))
+			rheos.listeners || 	add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {console.error(rheos.connection),reject()}))
 			services.svc_transport = core.services.RoonApiTransport
 			services.svc_transport.subscribe_outputs(async function (cmd, data) {		
 				switch (cmd){
