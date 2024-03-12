@@ -19,6 +19,8 @@
         "avr_control": 0,
         "fixed_control" : 0,
         "log_limit" : 100,
+        "log_level" : 1,
+        "monitor": 3,
         "clear_settings" : 0,
         "upnp_ip" : ""
         }
