@@ -1,4 +1,4 @@
-const version = "0.9.3-01"
+const version = "0.9.3-02"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -13,7 +13,7 @@ import ip from "ip"
 import process, { pid } from "node:process"
 import HeosApi from "heos-api"
 import RheosConnect from "telnet-client"
-const log = process.argv.includes("-l")||process.argv.includes("-log") 
+var log = process.argv.includes("-l")||process.argv.includes("-log") 
 const fixed_groups = new Map()
 const all_groups = new Map()
 const services = {svc_status:{},svc_transport :{},svc_volume_control :{},svc_settings : {}}
@@ -50,6 +50,7 @@ async function start_up(){
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {console.error(err),reject()}))
 	})
 	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
+	log = rheos.mysettings.log
 	await start_heos().catch((err) => {console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err);reject()})
 	await start_listening()
 	await update_heos_groups().catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Updating HEOS groups",err);reject()})
@@ -277,7 +278,7 @@ async function set_players(players){
  	}
 	if (added.length){
 		console.log("ADDED PLAYERS")
-	 	console.table(added, ["name", "pid", "model", "ip", "resolution","network","udn", "state"]) 
+	 	console.table(added, ["name", "pid", "model", "ip", "resolution","network","udn"]) 
 	}	 
 	return
 }
@@ -515,9 +516,10 @@ async function start_roon() {
 				const selected = select(rheos.mysettings)
 				const changed = select(settings.values)
 				if (JSON.stringify(selected) !== JSON.stringify(changed)){
-					update_status("UPDATING PLAYERS - PLEASE WAIT",false)
+					update_status("UPDATING UPnP SETTINGS - PLEASE WAIT",false)
 					roon.save_config("settings", changed)
 					rheos.mysettings = changed
+					log = changed.log
 					exec("pkill -f -9 UPnP")
 					set_players([...rheos_players.values()])
 	                let s = "Updated settings"
@@ -1013,10 +1015,10 @@ async function update_zones(zones){
 				if (z.outputs.length > 1){
 					const group = (rheos_groups.get(get_pid(get_output_name(z.outputs[0]))))
 					const old_roon_group = old_zone?.outputs?.map(output => {get_pid(get_output_name(output))})
-					const new_roon_group = z.outputs.map(output => get_pid(get_output_name(output)))
+					const new_roon_group = z.outputs.map(output => get_pid(get_output_name(output))).filter(o => o)
 					const heos_group = group?.players.map(player => player.pid);
 				    if (new_roon_group.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
-						await group_enqueue(new_roon_group.filter(o => o))	
+						await group_enqueue(new_roon_group)	
 					} else if (group_pending[pending_index]){	
 						group_pending[pending_index].status ="grouped"
 					}
@@ -1245,8 +1247,6 @@ async function group_dequeue(timer = 5000) {
 		return
 	}
 	rheos.working = true
-	log && console.log("<- RHEOS GROUP REQUEST",JSON.stringify(item.group))
-	//sum_array(item.group) && [...rheos_groups.values()].find (o => o.sum_group == sum_array(item.group)),item?.group?.toString() ||
 	await heos_command("group", "set_group", { pid: item?.group?.toString() },timer).catch((err) => {console.log(sum_array(item.group));item.resolve(err); rheos.working = false; group_dequeue() })
 	item.group.length == 1 && rheos_groups.delete(item?.group?.toString() )
 	rheos.working = false 
@@ -1291,7 +1291,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-01",
+		display_version: "0.9.3-02",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
