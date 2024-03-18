@@ -1,4 +1,4 @@
-const version = "0.9.3-00"
+const version = "0.9.3-01"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -508,9 +508,9 @@ async function start_roon() {
 					clearTimeout(rheos.monitor)
 				} 
 				const select= ({
-					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log_level,clear_settings,refresh_players,upnp_ip
+					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip
 			    }) => ({
-					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log_level,clear_settings,refresh_players,upnp_ip
+					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip
 				})
 				const selected = select(rheos.mysettings)
 				const changed = select(settings.values)
@@ -1291,7 +1291,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3.00",
+		display_version: "0.9.3.01",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1400,7 +1400,7 @@ function makelayout(settings) {
 	l.layout.push({ type: "string", title: "Roon Extension Host IP Address", maxlength: 15, setting: "host_ip" })
 	l.layout.push({ title: "Enable AVR Zone Control ", type: "dropdown", setting: 'avr_control', values : [{title: "ON", value : 1},{title : "OFF", value :0}]})
 	l.layout.push({ title: "Enable Fixed HEOS Groups ", type: "dropdown", setting: 'fixed_control', values : [{title: "ON", value : 1},{title : "OFF", value :0}]})
-	l.layout.push({ title: "Enable Logging ", type: "dropdown", setting: 'log_level', values : [{title: "ON", value : true},{title : "OFF", value :false}]})
+	l.layout.push({ title: "Enable Logging ", type: "dropdown", setting: 'log', values : [{title: "ON", value : true},{title : "OFF", value :false}]})
 	if (players.length) {
 		let _players_status = { type: "group", title: "PLAYERS", subtitle: "Set player resolution", collapsable: true, items: [] }
 		for (let player of players){
