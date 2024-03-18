@@ -56,7 +56,7 @@ async function start_up(){
 	await create_zone_controls().catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",err);reject()})
 	await create_fixed_group_control().catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Creating Fixed Groups",err);reject()})
 	rheos.mysettings.fixed_control && await load_fixed_groups().catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Loading Fixed Groups",err);reject()})
-	Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log(to_title_case(o[0].padEnd(20 ,".")),o[1] ? o[1] : o[1]===0 ? 0 : "Not Defined"))
+	Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log(to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
 	rheos.mysettings.avr_control && monitor_avr_status()
 	resolve()
 	}) .catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Starting Up",err)})
@@ -931,9 +931,12 @@ async function update_zones(zones){
 							}
 						}
 						if (z.outputs.length > 1 && index == -1 && (z?.state == 'paused' || (z?.state == "stopped" && z?.queue_items_remaining === 0))){
-							const {name,pid} = rheos_outputs.get(z.outputs[0].output_id)
-							services.svc_transport.ungroup_outputs(z.outputs)
-							fixed.players.forEach(x => fixed_players.delete(x.pid))
+							const op = rheos_outputs.get(z.outputs[0].output_id)
+							if (op){
+								services.svc_transport.ungroup_outputs(z.outputs)
+								fixed.players.forEach(p => fixed_players.delete(p.pid))	
+							}
+							
 						}
 					}
 					if (pending_index >-1){
@@ -1292,7 +1295,7 @@ async function connect_roon() {
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
-		log_level: log || "none",
+		log_level:  "none",
 		core_paired: async function (core) {
 			log && console.log(new Date().toLocaleString()+ " ROON PAIRED ",roon.extension_reginfo.extension_id)
 			log && console.log("ROON SERVER IP ADDRESS",roon.paired_core?.moo?.transport?.host)
