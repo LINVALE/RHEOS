@@ -1,4 +1,4 @@
-const version = "0.9.3-03"
+const version = "0.9.3-04"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -532,6 +532,10 @@ async function start_roon() {
 				}
 				roon.save_config("fixed_groups",rheos.myfixed_groups)
 				roon.save_config("players",[...rheos_players.values()].map((o) => {let {gid,Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));	
+				if (settings.values.avr_control !== rheos.mysettings.avr_control){
+					rheos.mysettings.avr_control = settings.values.avr_control
+					await start_up()
+				}
 			}
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
@@ -1273,7 +1277,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-03",
+		display_version: "0.9.3-04",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
