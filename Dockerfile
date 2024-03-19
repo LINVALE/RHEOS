@@ -15,4 +15,4 @@ EXPOSE 9000
 EXPOSE 3483
 EXPOSE 80
 USER node
-CMD [ "node", "app.mjs"]
+CMD [ "node", "app.mjs","-l"]
