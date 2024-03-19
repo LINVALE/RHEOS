@@ -1,4 +1,4 @@
-const version = "0.9.3-023"
+const version = "0.9.3-03"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
