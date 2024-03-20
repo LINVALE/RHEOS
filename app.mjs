@@ -1,4 +1,4 @@
-const version = "0.9.3-04"
+const version = "0.9.3-05"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -217,10 +217,18 @@ async function start_heos(counter = 0) {
 async function get_device_info(ip){
 	if (!ip){return}
 	const response = await fetch('http://' + ip + ':60006/upnp/desc/aios_device/aios_device.xml').catch(err => console.log(err))
+	
 	const body = await response.text().catch(err => console.log(err))
+	//console.log(body)
+
 	const re = new RegExp("<UDN>(.*?)</UDN?>")
-	let x = body.search(re)
-	return(body.slice(x+5,x+46))
+	let upn = body.search(re)
+
+	const re2 = new RegExp("<lanMac>(.*?)</lanMac?>")
+	let mac = body.search(re2)
+	console.log(body.slice(upn+5,upn+46),body.slice(mac+8,mac+25))
+	//return(body.slice(upn+5,upn+46))
+	return([body.slice(upn+5,upn+46),body.slice(mac+8,mac+25)])
 }
 async function compare_players(){
 	let players = await get_players().catch(() => {(console.error(new Date().toLocaleString(),"Failed to create players - recomparing"));compare_players()})
@@ -263,8 +271,9 @@ async function set_players(players){
 				player.auto_play = "OFF"
 				
 			}
-			player.udn = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")}) || rheos.myplayers.find(p => p.pid == player.pid)?.udn ||
-			rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
+			const info = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")})
+			player.udn = info[0]// || rheos.myplayers.find(p => p.pid == player.pid)?.udn //||rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
+			player.mac = info[1]// || rheos.myplayers.find(p => p.pid == player.pid)?.udn //||rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
 			if (player.udn){
 				player.volume = {}
 				player.state = await read_player_status(player.pid)
@@ -323,7 +332,7 @@ async function read_player_status(pid){
 async function create_player(player) {
 	log && console.log("-> RHEOS: CREATING",JSON.stringify(player))
 	const app = await (choose_binary()).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
-	await set_player_resolution(player).catch(err =>{})
+	await set_player_resolution(player).catch(err =>{console.log(err)})
 	rheos.processes[player.pid] = spawn(app,['-b', rheos.system_info[0], '-Z', '-M', player.name + " (RHEOS: "+player.model+")",'-x', './UPnP/Profiles/' + player.name + '.xml',(rheos.mysettings.upnp_ip && (',-s', rheos.mysettings.upnp_ip))],
 	{ stdio: 'ignore' },rheos_players.set(player.pid,player))	
 	return 
@@ -578,7 +587,7 @@ async function avr_dequeue(ip,res) {
 		res = await connection.write(req.item[1],{timeout : 400},(err,data)=>{err || (rheos.avr[ip] = false);connection.end()})
 		res = res.split(",").filter((str) => {return /\S/.test(str)})
 		res.push(req.item[0])
-		log &&console.log("<- AVR  REEQUEST:",JSON.stringify(req.item))
+		log &&console.log("<- AVR  REQUEST:",JSON.stringify(req.item))
 		if (req) {
 			log && console.log("-> AVR  COMPLETE:",(JSON.stringify(res,req)))
 		}
@@ -731,10 +740,10 @@ async function create_avr_controls(player){
 		for  (let index = 1; index < 3; index++) {
 			switch (index) {
 				case 1 :
-					log && console.log("CREATING AVR CONTROL",  player?.name +   "​ Main​ Zone")
+					log && console.log("-> RHEOS: CREATING AVR CONTROL",  player?.name +   "​ Main​ Zone")
 				break
 				case 2 :
-					log && console.log("CREATING AVR CONTROL",  player?.name +   "​ Zone​ 2")
+					log && console.log("-> RHEOS: CREATING AVR CONTROL",  player?.name +   "​ Zone​ 2")
 				break		
 			}
 			if (!avr_zone_controls[(Math.abs(player.pid)+index).toString()]){
@@ -1123,7 +1132,7 @@ async function set_player_resolution(player){
 	switch (player.resolution) {
 		case  ( "HR") :{
 			device.enabled = '1'
-			device.mode = ("flc:0,r:-48000,s:16").toString().concat(mysettings.flow ? ",flow" : "")
+			device.mode = ("flc:0,r:-48000,s:16").toString().concat(rheos.mysettings.flow ? ",flow" : "")
 			device.sample_rate = '192000'	
 		} 
 		break
@@ -1135,7 +1144,7 @@ async function set_player_resolution(player){
 		break
 		default :
 			device.enabled = '1'
-			device.mode = ("flc:0,r:-48000,s:16").toString().concat(mysettings.flow ? ",flow" : "")
+			device.mode = ("flc:0,r:-48000,s:16").toString().concat(rheos.mysettings.flow ? ",flow" : "")
 			device.sample_rate = '48000'
 	}
 	let template = 	`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1169,7 +1178,7 @@ async function set_player_resolution(player){
 			<sample_rate>${device.sample_rate}</sample_rate>
 		</device>
 		</squeeze2upnp>`
-	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template,{flush:true}).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
+	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
 	rheos.myplayers.find(o => o.pid == player.pid).resolution = player.resolution
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 }
@@ -1277,7 +1286,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-04",
+		display_version: "0.9.3-05",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
