@@ -8,7 +8,6 @@ COPY . /home/node
 COPY --chown=node:node . .
 RUN chmod a+rwx ./UPnP/Bin
 RUN chmod a+rwx ./UPnP/Profiles
-RUN chmod a+rwx ./UPnP/Profiles/*
 EXPOSE 1255
 EXPOSE 1256
 EXPOSE 9000
