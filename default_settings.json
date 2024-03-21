@@ -2,8 +2,8 @@
     "settings": {
         "default_player_ip": "",
         "host_ip": "",
-        "streambuf_size": 271440,
-        "output_size": 8388608,
+        "streambuf_size": 2621440,
+        "output_size": 12582912,
         "stream_length": -3,
         "seek_after_pause": 0,
         "volume_on_play": -1,
@@ -15,13 +15,13 @@
         "send_coverart": 0,
         "send_metadata": 0,
         "flow": 0,
-        "max_safe_vol" : 70, 
+        "max_safe_vol": 70,
         "avr_control": 0,
-        "fixed_control" : 0,
-        "log_limit" : 100,
-        "log" : 0,
-        "monitor": 3,
-        "clear_settings" : 0,
+        "fixed_control": 0,
+        "log_limit": 100,
+        "log": 0,
+        "clear_settings": 0,
+        "refresh_players": 0,
         "upnp_ip" : ""
         }
     }

@@ -259,12 +259,19 @@ async function set_players(players){
 			    player.ip = player.ip || rheos.myplayers.find(p => p.pid == player.pid)?.ip && console.error(new Date().toLocaleString(),"Unable to get current player ip")
 			} else { 
 				player.resolution = "CD" 
-				player.auto_play = "OFF"
-				
+				player.auto_play = "OFF"	
 			}
 			const info = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")})
-			player.udn = info[0] || rheos.myplayers.find(p => p.pid == player.pid)?.udn ||rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
-			player.mac = info[1] || rheos.myplayers.find(p => p.pid == player.pid)?.mac ||rheos.myplayers.findIndex(p => p.pid == player.pid) > -1 || rheos.myplayers.push(player)
+			if (info){
+				player.udn = (info[0])
+				player.mac = (info[1])
+			} else {
+				player.udn =  rheos.myplayers.find(p => p.pid == player.pid)?.udn
+				player.mac =  rheos.myplayers.find(p => p.pid == player.pid)?.mac 
+			}
+			if (rheos.myplayers.findIndex(p => p.pid == player.pid) == -1 ){
+				rheos.myplayers.push(player)
+			}
 			if (player.udn){
 				player.volume = {}
 				player.state = await read_player_status(player.pid)
