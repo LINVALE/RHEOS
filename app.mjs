@@ -1,4 +1,4 @@
-const version = "0.9.3-05"
+const version = "0.9.3-06"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -185,19 +185,16 @@ async function add_listeners() {
 		})
 }
 async function start_heos(counter = 0) {
-	console.warn("CONNECTING TO",rheos.system_info[0])
 	if (counter == 10){ reject()} 
 	return new Promise (async function (resolve,reject){
 		process.setMaxListeners(32)
-        console.log("DEFAULT PLAYER IP", rheos.mysettings.default_player_ip || "NOT DEFINED")
 		if (!rheos.connection) {
 			try {
-				rheos.connection =   await Promise.all([HeosApi.connect(rheos.mysettings.default_player_ip),HeosApi.connect(rheos.mysettings.default_player_ip)])//).catch (console.error("INCORRECT DEFAULT PLAYER"))//.then((err)=>
-				console.log("CONNECTED TO DEFAULT PLAYER IP", rheos.mysettings.default_player_ip || "NOT DEFINED")
+				rheos.connection =   await Promise.all([HeosApi.connect(rheos.mysettings.default_player_ip),HeosApi.connect(rheos.mysettings.default_player_ip)])
+				console.log("-> RHEOS: CONNECTED TO DEFAULT PLAYER IP",  rheos.mysettings.default_player_ip )
 			} catch {
-				console.error("DEFAULT PLAYER NOT FOUND")
-				rheos.connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]}),HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]})])
-			    console.log("CONNECTING TO DISCOVERD PLAYER")
+				console.log("-> RHEOS: CONNECTING TO DISCOVERED PLAYER")
+				rheos.connection = await  Promise.all([HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]}),HeosApi.discoverAndConnect({timeout:10000, address:rheos.system_info[0]})])  
 			} 
 		}
 		rheos.connection[0].socket.setMaxListeners(32)
@@ -217,17 +214,11 @@ async function start_heos(counter = 0) {
 async function get_device_info(ip){
 	if (!ip){return}
 	const response = await fetch('http://' + ip + ':60006/upnp/desc/aios_device/aios_device.xml').catch(err => console.log(err))
-	
 	const body = await response.text().catch(err => console.log(err))
-	//console.log(body)
-
-	const re = new RegExp("<UDN>(.*?)</UDN?>")
-	let upn = body.search(re)
-
-	const re2 = new RegExp("<lanMac>(.*?)</lanMac?>")
-	let mac = body.search(re2)
-	console.log(body.slice(upn+5,upn+46),body.slice(mac+8,mac+25))
-	//return(body.slice(upn+5,upn+46))
+	let re = new RegExp("<UDN>(.*?)</UDN?>")
+	const upn = body.search(re)
+	re = new RegExp("<lanMac>(.*?)</lanMac?>")
+	const mac = body.search(re)
 	return([body.slice(upn+5,upn+46),body.slice(mac+8,mac+25)])
 }
 async function compare_players(){
@@ -587,9 +578,9 @@ async function avr_dequeue(ip,res) {
 		res = await connection.write(req.item[1],{timeout : 400},(err,data)=>{err || (rheos.avr[ip] = false);connection.end()})
 		res = res.split(",").filter((str) => {return /\S/.test(str)})
 		res.push(req.item[0])
-		log &&console.log("<- AVR  REQUEST:",JSON.stringify(req.item))
+		log &&console.log("<- AVR: REQUEST:",JSON.stringify(req.item))
 		if (req) {
-			log && console.log("-> AVR  COMPLETE:",(JSON.stringify(res,req)))
+			log && console.log("-> AVR: COMPLETE:",(JSON.stringify(res,req)))
 		}
 		req && req.resolve(res)	
 	}
@@ -653,11 +644,9 @@ function monitor_avr_status() {
 	}, 5000)
 }
 async function update_avr_status(avr){
-	//log && console.log("MONITORING AVR",avr.name,avr.ip)
 	return new Promise(async function (resolve) {
 		const avrs = Object.entries(avr_zone_controls).filter(o => o[1].state.ip == avr.ip)
 		const status = new Set (await (control_avr(avr.ip,"\rZM?\rSI?\rMV?\rMU?\rZ2?\rZ2MU?\rZ?\rMS?\r")))
-		//log && console.log("READ STATUS", status.size,[...status].toString())
 		roon.paired || log && process.stdout.write(new Date().toLocaleString()+ (" UNPAIRED\r"))
 		if(services.svc_transport && roon.paired){
 			if (rheos.mysettings.avr_control ){
@@ -665,6 +654,7 @@ async function update_avr_status(avr){
 				let index = 0
 				for await (let control of avrs){
 					const op = rheos_outputs.get(control[1].output?.output_id)
+						log && console.log("-> AVR: CONTROL",JSON.stringify(control))
 						if ((index === 0 && (status.has("ZMON") && status.has("SINET"))) || (index ===1 && (status.has("Z2ON") && status.has("Z2NET")) )) { 
 							if (!op && control[1].state.status !== "selected"){
 								control[1].state.status = "selected"
@@ -682,7 +672,6 @@ async function update_avr_status(avr){
 							
 						}
 						else {
-							//console.log("AVR OFF",control)
 							control[1].state.status = "deselected"
 							control[1].update_state({supports_standby :true, status : "deselected"})
 							if (control[1].output ){
@@ -726,7 +715,7 @@ async function update_avr_status(avr){
 	})
 }
 async function create_avr_zone(avr,index){	
-	log && console.log("AVR ZONE IS ON",index === 0?  avr?.name + "​ Main​ Zone": avr?.name + "​ Zone​ 2")
+	log && console.log("->AVR: ZONE IS ON",index === 0?  avr?.name + "​ Main​ Zone": avr?.name + "​ Zone​ 2")
 	const hex = ((Math.abs(avr?.pid)+(index+1)).toString(16))
 	if (! rheos.processes[hex]){
 		const mac = "bb:bb:"+ hex.replace(/..\B/g, '$&:').slice(-11)
@@ -1179,7 +1168,11 @@ async function set_player_resolution(player){
 		</device>
 		</squeeze2upnp>`
 	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
-	rheos.myplayers.find(o => o.pid == player.pid).resolution = player.resolution
+	
+	const saved_player = rheos.myplayers.find(o => o.pid == player.pid)
+	if (saved_player){
+		saved_player.resolution = player.resolution
+	}
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {Z2,PWR,volume,output,zone,state,status,group, ...p} = o;return(p)}));
 }
 async function start_listening() {
@@ -1286,7 +1279,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-05",
+		display_version: "0.9.3-06",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",

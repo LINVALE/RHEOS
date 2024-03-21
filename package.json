@@ -1,6 +1,6 @@
 {
   "name": "rheos",
-  "version": "0.9.3-5",
+  "version": "0.9.3-2",
   "main": "app.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,9 +16,7 @@
     "node-roon-api-status": "github:roonlabs/node-roon-api-status",
     "node-roon-api-transport": "github:roonlabs/node-roon-api-transport",
     "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control",
-    "node-upnp-utils": "^1.0.0",
-    "node-uuid": "^1.4.8",
-    "telnet-client": "^2.0.8"
+    "telnet-client": "^2.1.0"
   },
   "repository": {
     "type": "git",
