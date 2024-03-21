@@ -1,4 +1,4 @@
-const version = "0.9.3-06"
+const version = "0.9.3-07"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -262,6 +262,7 @@ async function set_players(players){
 				player.auto_play = "OFF"	
 			}
 			const info = await get_device_info(player.ip).catch(()=>{console.error(new Date().toLocaleString(),"Unable to get player UDN")})
+			console.log("-> HEOS: PLAYER ",new Date().toLocaleString(),player.name,info)
 			if (info){
 				player.udn = (info[0])
 				player.mac = (info[1])
@@ -492,6 +493,10 @@ async function start_roon() {
 				  	await unload_fixed_groups().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Unloading Fixed Groups",(err) => {throw error(err),reject()}))
 				}
 				if (settings.values.avr_control){ 
+					if (settings.values.avr_control !== rheos.mysettings.avr_control){
+						await create_zone_controls().catch( err => {console.error(new Date().toLocaleString(),"⚠ Error Creating Zone Controls",err);reject()})
+					}
+					
 					let avrs = [...rheos_players.values()].filter(player => player.type == "AVR")
 					for (let avr of avrs){
 						avr_volume_controls[avr.pid]?.update_state({	state: {
@@ -648,9 +653,10 @@ function monitor_avr_status() {
 			!rheos.block_avr_update && rheos.mysettings.avr_control && update_avr_status(avr).catch(() => {console.error("⚠ ERROR MONITORING AVR STATUS")})
 		}
 	  	monitor_avr_status();
-	}, 5000)
+	}, 2000)
 }
 async function update_avr_status(avr){
+	console.log("Monitoring")
 	return new Promise(async function (resolve) {
 		const avrs = Object.entries(avr_zone_controls).filter(o => o[1].state.ip == avr.ip)
 		const status = new Set (await (control_avr(avr.ip,"\rZM?\rSI?\rMV?\rMU?\rZ2?\rZ2MU?\rZ?\rMS?\r")))
