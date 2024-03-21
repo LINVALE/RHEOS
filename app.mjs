@@ -1292,7 +1292,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-06",
+		display_version: "0.9.3-07",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
