@@ -1,4 +1,4 @@
-const version = "0.9.3-07"
+const version = "0.9.3-08"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -131,7 +131,7 @@ async function add_listeners() {
 					if (state === "play"  && zone.is_play_allowed){
 						services.svc_transport.control(zone,'play')
 					}
-					if (state === "stop" && zone.state === "paused"){
+					if (state === "stop" ){
 						services.svc_transport.control(zone,'stop')
 					}
 				}
@@ -463,7 +463,6 @@ async function start_roon() {
 						if (rheos.processes[player.pid]?.pid){
 							process.kill(rheos.processes[player.pid].pid,'SIGKILL')
 						}
-						
 						await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",JSON.stringify(player))})
 						console.log("RESET PLAYER RESOLUTION")
 						let x = console.table([player], ["name", "pid", "model", "ip", "resolution","network","udn"]) 
@@ -549,6 +548,7 @@ async function start_roon() {
 					await start_up()
 				}
 			}
+			Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log("-> RHEOS: SETTING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
 	})
@@ -656,7 +656,6 @@ function monitor_avr_status() {
 	}, 2000)
 }
 async function update_avr_status(avr){
-	console.log("Monitoring")
 	return new Promise(async function (resolve) {
 		const avrs = Object.entries(avr_zone_controls).filter(o => o[1].state.ip == avr.ip)
 		const status = new Set (await (control_avr(avr.ip,"\rZM?\rSI?\rMV?\rMU?\rZ2?\rZ2MU?\rZ?\rMS?\r")))
@@ -1238,7 +1237,7 @@ async function group_enqueue(group) {
 		group_dequeue().catch((err)=>{log && console.error(new Date().toLocaleString(),"Deque error",err)})
 		})
 	}
-return
+	return
 }	
 async function group_dequeue(timer = 5000) {
 	if (rheos.working || !group_buffer.length) { 
@@ -1254,7 +1253,7 @@ async function group_dequeue(timer = 5000) {
 	group_buffer.shift()
 	item.resolve()
 	await group_dequeue()
-return
+	return
 }
 async function update_heos_groups() {
 return new Promise(async function (resolve) {
@@ -1292,7 +1291,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-07",
+		display_version: "0.9.3-08",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
