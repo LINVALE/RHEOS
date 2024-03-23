@@ -1,4 +1,4 @@
-const version = "0.9.3-08"
+const version = "0.9.3-09"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -49,7 +49,7 @@ async function start_up(){
 		log && console.error(new Date().toLocaleString(),'SQUEEZELITE NOT INSTALLED : LOADING BINARIES');
 		squeezelite = await choose_binary("squeezelite",true).catch(err => console.error(new Date().toLocaleString(),"⚠ Error Loading Squeezelite Binaries",err => {console.error(err),reject()}))
 	})
-	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version)
+	console.log("SYSTEM INFORMATION:",rheos.system_info.toString(),"Version :",roon.extension_reginfo.display_version, "NODEJS VERSION:",process.version)
 	log = rheos.mysettings.log
 	await start_heos().catch((err) => {console.error(new Date().toLocaleString(),"⚠ Error Starting Heos",err);reject()})
 	await start_listening()
@@ -131,9 +131,6 @@ async function add_listeners() {
 					if (state === "play"  && zone.is_play_allowed){
 						services.svc_transport.control(zone,'play')
 					}
-					if (state === "stop" ){
-						services.svc_transport.control(zone,'stop')
-					}
 				}
 			}
 		})
@@ -164,7 +161,7 @@ async function add_listeners() {
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
 			const op = rheos_players.get(res.heos.message.parsed.pid)?.output
-			if (op && res.heos.message.parsed.error.includes("Unable to play media")){
+			if (op && res.heos.message.parsed.error.includes("Unable to") ){
 				let zone  = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
 				services.svc_transport.control(zone,'play')
 			}
@@ -1291,7 +1288,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-08",
+		display_version: "0.9.3-09",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
