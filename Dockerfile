@@ -1,4 +1,4 @@
-FROM node:18-bullseye-slim
+FROM node:21-bullseye-slim
 USER root
 RUN usermod -a -G sudo node
 RUN usermod -a -G audio node
