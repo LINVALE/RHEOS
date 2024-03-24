@@ -1,4 +1,4 @@
-const version = "0.9.3-09"
+const version = "0.9.3-10"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -329,7 +329,7 @@ async function create_player(player) {
 	log && console.log("-> RHEOS: CREATING",JSON.stringify(player))
 	const app = await (choose_binary()).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
 	await set_player_resolution(player).catch(err =>{console.log(err)})
-	rheos.processes[player.pid] = spawn(app,['-b', rheos.system_info[0], '-Z', '-M', player.name + " (RHEOS: "+player.model+")",'-x', './UPnP/Profiles/' + player.name + '.xml',(rheos.mysettings.upnp_ip && (',-s', rheos.mysettings.upnp_ip))],
+	rheos.processes[player.pid] = spawn(app,['-b', rheos.system_info[0], '-Z', '-M', player.name + " (RHEOS: "+player.model+")",'-x', './UPnP/Profiles/' + player.name + '.xml','-s', rheos.mysettings.upnp_ip],
 	{ stdio: 'ignore' },rheos_players.set(player.pid,player))	
 	return 
 }
@@ -427,7 +427,7 @@ async function start_roon() {
 				rheos.mysettings["A"+p.pid] = p.auto_play
 			})
 			await get_all_groups()
-			rheos.mysettings.upnp_ip = rheos.mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host
+			rheos.mysettings.upnp_ip = rheos.mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host || ""
 			Array.isArray(rheos.myfixed_groups) && rheos.myfixed_groups.forEach(g => {rheos.mysettings[g.sum_group] = (g.resolution)})
 			cb(makelayout(rheos.mysettings))
 		},
@@ -545,7 +545,7 @@ async function start_roon() {
 					await start_up()
 				}
 			}
-			Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log("-> RHEOS: SETTING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
+			Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log("-> RHEOS: UPDATING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
 	})
@@ -583,7 +583,6 @@ async function avr_dequeue(ip,res) {
 		newlineReplace : ","
 	}).catch(err => {return(err)})
 	try {
-		
 		res = await connection.write(req.item[1],{timeout : 400},(err,data)=>{err || (rheos.avr[ip] = false);connection.end()})
 		res = res.split(",").filter((str) => {return /\S/.test(str)})
 		res.push(req.item[0])
@@ -594,6 +593,7 @@ async function avr_dequeue(ip,res) {
 		req && req.resolve(res)	
 	}
 	catch {
+		log && console.error("-> AVR: INCOMPLETE:",(JSON.stringify(req.item)))
 		req && req.resolve(res)
 	}
 	await avr_dequeue()	
@@ -676,9 +676,7 @@ async function update_avr_status(avr){
 							if (MV && !control[1]?.state?.display_name?.includes(MV.slice(2))){
 								control[1].state.display_name  = MV.slice(2)
 								control[1].update_state({display_name :  avr.name + " ♫ " + to_title_case(MV.slice(2)), supports_standby :true, status : "indeterminate"})
-							}
-
-							
+							}	
 						}
 						else {
 							control[1].state.status = "deselected"
@@ -859,7 +857,6 @@ async function update_outputs(outputs,player){
 				const op_name = get_output_name(op) || ""
 				const old_op = rheos_outputs.get(op.output_id) 
 				const is_fixed = op.source_controls[0].display_name.includes("🔗") ? op.output_id : null
-				
 				if (op.source_controls[0].display_name.includes("​")){
 					player = ( await get_player_by_name(op_name.split("​",1)[0])) || undefined
 				} else {
@@ -973,7 +970,7 @@ async function update_zones(zones){
 						rheos.block_avr_update = false
 					} else if (rheos.mysettings.avr_control && z.outputs[index].source_controls[0]?.display_name.includes("​")){
 						rheos.block_avr_update = true
-						console.log("STANBY ZONE",z.outputs[index].source_controls[0]?.display_name)
+						log && console.log("-> AVR: STANDBY ZONE",z.outputs[index].source_controls[0]?.display_name)
 						services.svc_transport.ungroup_outputs([z.outputs[index]]);
 						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == get_output_name(z.outputs[index])	)	
 						if (control){
@@ -1288,7 +1285,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-09",
+		display_version: "0.9.3-10",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1315,7 +1312,6 @@ async function connect_roon() {
 						}
 					break		
 					case "Changed" : {
-						
 						Array.isArray(data.outputs_changed) && await update_outputs(data.outputs_changed,false)
 						Array.isArray(data.outputs_added) &&  await update_outputs(data.outputs_added,true)
 						if (Array.isArray(data.outputs_removed)) {
@@ -1409,21 +1405,19 @@ function makelayout(settings) {
 		}
 		l.layout.push(_players_status)
 	}
-	if (rheos.mysettings.avr_control){
-		let _avrs = { type: "group", title: "AUTO PLAY", subtitle: "Set for devices with power ON/OFF", collapsable: true, items: [] };
-		for (let player of rheos_players) {
-			if (Array.isArray(player[1].PWR)) {
-				let values = [
-					{title : "OFF", value :"-1"},
-					{title : "No-Delay", value :"0"}]
-					for (let i = 0; i < 21; i++) {
-						values.push ({title : i, value : i})
-					}
-				_avrs.items.push({title: player[1].name, subtitle: "Set delay (secs)",type: "dropdown",values: values, setting: "A"+player[1].pid.toString()})
-			}
+	let _avrs = { type: "group", title: "AUTO PLAY", subtitle: "Set for devices with power ON/OFF", collapsable: true, items: [] };
+	for (let player of rheos_players) {
+		if (Array.isArray(player[1].PWR)) {
+			let values = [
+				{title : "OFF", value :"-1"},
+				{title : "No-Delay", value :"0"}]
+				for (let i = 0; i < 21; i++) {
+					values.push ({title : i, value : i})
+				}
+			_avrs.items.push({title: player[1].name, subtitle: "Set delay (secs)",type: "dropdown",values: values, setting: "A"+player[1].pid.toString()})
 		}
-		l.layout.push(_avrs)
 	}
+	l.layout.push(_avrs)
 	if (rheos.mysettings.fixed_control){
 		const _fixed_groups = { type: "group", title: "FIXED GROUPS", subtitle: "Create fixed groups of players", collapsable: true, items: [] };
 		for (let group of all_groups.entries()) {
