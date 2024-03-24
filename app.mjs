@@ -1,4 +1,4 @@
-const version = "0.9.3-10"
+const version = "0.9.3-11"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -329,6 +329,7 @@ async function create_player(player) {
 	log && console.log("-> RHEOS: CREATING",JSON.stringify(player))
 	const app = await (choose_binary()).catch(err => console.error(new Date().toLocaleString(),"Failed to find binary",err))
 	await set_player_resolution(player).catch(err =>{console.log(err)})
+	console.log("SERVER",rheos.mysettings.upnp_ip)
 	rheos.processes[player.pid] = spawn(app,['-b', rheos.system_info[0], '-Z', '-M', player.name + " (RHEOS: "+player.model+")",'-x', './UPnP/Profiles/' + player.name + '.xml','-s', rheos.mysettings.upnp_ip],
 	{ stdio: 'ignore' },rheos_players.set(player.pid,player))	
 	return 
@@ -427,7 +428,7 @@ async function start_roon() {
 				rheos.mysettings["A"+p.pid] = p.auto_play
 			})
 			await get_all_groups()
-			rheos.mysettings.upnp_ip = rheos.mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host || ""
+			//rheos.mysettings.upnp_ip = roon.paired_core?.moo?.transport?.host  || ""
 			Array.isArray(rheos.myfixed_groups) && rheos.myfixed_groups.forEach(g => {rheos.mysettings[g.sum_group] = (g.resolution)})
 			cb(makelayout(rheos.mysettings))
 		},
@@ -516,7 +517,7 @@ async function start_roon() {
 				const select= ({
 					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip
 			    }) => ({
-					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip
+					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip 
 				})
 				const selected = select(rheos.mysettings)
 				const changed = select(settings.values)
@@ -545,7 +546,7 @@ async function start_roon() {
 					await start_up()
 				}
 			}
-			Object.entries(rheos.mysettings).filter(o => isNaN(o[0])).forEach(o => console.log("-> RHEOS: UPDATING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
+			Object.entries(rheos.mysettings).forEach(o => console.log("-> RHEOS: UPDATING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
 	})
@@ -1285,7 +1286,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-10",
+		display_version: "0.9.3-11",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1294,6 +1295,7 @@ async function connect_roon() {
 			log && console.log(new Date().toLocaleString()+ " ROON PAIRED ",roon.extension_reginfo.extension_id)
 			log && console.log("ROON SERVER IP ADDRESS",roon.paired_core?.moo?.transport?.host)
 			roon.paired = true
+			rheos.mysettings.upnp_ip = rheos.mysettings.upnp_ip || roon.paired_core?.moo?.transport?.host  || ""
 			rheos.listeners || 	add_listeners().catch(err => console.error(new Date().toLocaleString(),"⚠ Error Adding Listeners",err => {console.error(rheos.connection),reject()}))
 			services.svc_transport = core.services.RoonApiTransport
 			services.svc_transport.subscribe_outputs(async function (cmd, data) {		
@@ -1446,7 +1448,7 @@ function makelayout(settings) {
 		{ title: "● Send Cover Art", type: "dropdown", setting: 'send_coverart', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
 		{ title: "● Flow Mode", type: "dropdown", setting: 'flow', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
 		{ title: "● Log File Size Limit (MB) -1 for unlimited", type: "integer", setting: 'log_limit', min: -1, max: 10 },
-		{ title: "● ROON UPnP Server Address", type: "string",  maxlength: 15, setting: "upnp_ip" }
+		{ title: "● ROON UPnP Server Address", subtitle:  "Default: "+roon.paired_core?.moo?.transport?.host, type: "string",  maxlength: 15, setting: "upnp_ip" }
 		]
 	})
 	l.layout.push({
@@ -1459,7 +1461,9 @@ function makelayout(settings) {
 			{ title: "● RESET STATUS TO DEFAULTS", type: "dropdown", setting: 'clear_settings', values: [{ title: "YES", value: 1}, { title: "NO", value: 0}] },
 		]
 	})
-	return (l)
+	l.has_error = ((l.values.upnp_ip !== "" && !validateIPAddressOptimized(l.values.upnp_ip)) || ((l.values.host_ip !== "" && !validateIPAddressOptimized(l.values.host_ip))))
+	 	l.has_error && console.error("-> RHEOS ERROR: INVALID IP ENTRY",l.values.upnp_ip,"or",l.values.host_ip)
+	 	return (l)
 }
 function get_zone_group_value(zone_id){
 	let zone = zone_id
@@ -1544,3 +1548,14 @@ function suppressExperimentalWarnings (p){
 		return originalEmit.apply(p, arguments);
 	}
 }
+function validateIPAddressOptimized(ip) {
+	const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+	const ipv6Regex = /^([\da-f]{1,4}:){7}[\da-f]{1,4}$/i;
+	if (ipv4Regex.test(ip)) {
+	  return ip.split('.').every(part => parseInt(part) <= 255);
+	}
+	if (ipv6Regex.test(ip)) {
+	  return ip.split(':').every(part => part.length <= 4);
+	}
+	return false;
+  }
