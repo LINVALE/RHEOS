@@ -1,4 +1,4 @@
-const version = "0.9.3-11"
+const version = "0.9.3-13"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -26,7 +26,6 @@ const exec = (child.exec)
 const spawn = (child.spawn)
 const rheos_players = new Map()
 const rheos_zones = new Map()
-const non_rheos_zones = new Map()
 const rheos_outputs = new Map()
 const rheos_groups = new Map()
 const fixed_players = new Set()
@@ -134,6 +133,13 @@ async function add_listeners() {
 						if (state === "play"  && zone.is_play_allowed){
 							services.svc_transport.control(zone,'play')
 						}
+						if (state === "play" && rheos.stop_timer ){
+							clearTimeout(rheos.stop_timer)
+							services.svc_transport.control(zone,'play')
+						}
+						if (state === "stop"){
+							rheos.stop_timer = setTimeout( () => {services.svc_transport.control(zone,'stop' )},3000)
+						}
 					}
 				}
 		})
@@ -162,7 +168,7 @@ async function add_listeners() {
 			}
 		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
-			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
+			console.log("-> RHEOS: EVENT:",JSON.stringify(res))
 			const op = rheos_players.get(res.heos.message.parsed.pid)?.output
 			if (op && res.heos.message.parsed.error.includes("Unable to") ){
 				let zone  = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
@@ -1029,8 +1035,6 @@ async function update_zones(zones){
 						rheos.playing_display = (z.outputs.length == 1 ?"  🎵":"  🎶", z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
 				    	console.error(new Date().toLocaleString(),z.outputs.length == 1 ?"  🎵":"  🎶", z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)		
 				}			    
-			} else if (z?.outputs){
-				non_rheos_zones.set(z.zone_id,z)
 			} else { 	
 				const zone =(rheos_zones.get(z))
 				if (zone?.outputs.filter(op => op && get_pid(get_output_name(op))).length >1){
@@ -1041,7 +1045,6 @@ async function update_zones(zones){
 					}
 				} 
 				rheos_zones.delete(zone?.zone_id || z)	
-				non_rheos_zones.delete(z)	
 			}
 		}
 		resolve()
@@ -1298,7 +1301,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-11",
+		display_version: "0.9.3-13",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
