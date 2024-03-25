@@ -26,6 +26,7 @@ const exec = (child.exec)
 const spawn = (child.spawn)
 const rheos_players = new Map()
 const rheos_zones = new Map()
+const non_rheos_zones = new Map()
 const rheos_outputs = new Map()
 const rheos_groups = new Map()
 const fixed_players = new Set()
@@ -118,21 +119,23 @@ async function add_listeners() {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
 		})
 		.on({ commandGroup: "event", command: "player_state_changed" }, async (res) => {
-			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
+			
 			const {pid,state} = res.heos.message.parsed
 			const player =  rheos_players.get(pid)
-			const op = player?.output
-			if (rheos_outputs.get(op) && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
-				let zone = services.svc_transport.zone_by_output_id(op) 
-				if (zone){
-					if (state === "pause"  && (zone.is_pause_allowed )){
-						services.svc_transport.control(zone,'pause')
-					}
-					if (state === "play"  && zone.is_play_allowed){
-						services.svc_transport.control(zone,'play')
+			const op = player?.output 
+			const {type,mid,sid} =  await get_now_playing(pid)
+            if (type == 'song' && mid == 1 && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
+					console.log("-> RHEOS: EVENT:",player.name,JSON.stringify(res))
+					let zone = services.svc_transport.zone_by_output_id(op) 
+					if (zone){
+						if (state === "pause"  && (zone.is_pause_allowed )){
+							services.svc_transport.control(zone,'pause')
+						}
+						if (state === "play"  && zone.is_play_allowed){
+							services.svc_transport.control(zone,'play')
+						}
 					}
 				}
-			}
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
@@ -320,6 +323,10 @@ async function get_players() {
 			}
 		})
 	})
+}
+async function get_now_playing(pid){
+	const res = await heos_command("player", "get_now_playing_media",{pid : pid})
+	return(res.payload)
 }
 async function read_player_status(pid){
 	const res = await heos_command("player", "get_play_state",{pid : pid})
@@ -918,8 +925,10 @@ async function update_outputs(outputs,player){
 async function update_zones(zones){
 	return new Promise(async function (resolve) {
 		for (const z of zones) {
+			
 			let fixed = {}
 			let pending_index = -1
+			
 			if (z.outputs && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || z.outputs[0].source_controls[0].display_name.includes ("🔗")) || z.outputs[0].source_controls[0].display_name.includes ("​")) ){
 				pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
 				if (rheos.mysettings.fixed_control ){	
@@ -1020,6 +1029,8 @@ async function update_zones(zones){
 						rheos.playing_display = (z.outputs.length == 1 ?"  🎵":"  🎶", z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)
 				    	console.error(new Date().toLocaleString(),z.outputs.length == 1 ?"  🎵":"  🎶", z.display_name, " ▶ ",z?.now_playing?.one_line?.line1)		
 				}			    
+			} else if (z?.outputs){
+				non_rheos_zones.set(z.zone_id,z)
 			} else { 	
 				const zone =(rheos_zones.get(z))
 				if (zone?.outputs.filter(op => op && get_pid(get_output_name(op))).length >1){
@@ -1030,6 +1041,7 @@ async function update_zones(zones){
 					}
 				} 
 				rheos_zones.delete(zone?.zone_id || z)	
+				non_rheos_zones.delete(z)	
 			}
 		}
 		resolve()
