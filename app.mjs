@@ -1,4 +1,4 @@
-const version = "0.9.3-13"
+const version = "0.9.3-14"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -118,30 +118,30 @@ async function add_listeners() {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
 		})
 		.on({ commandGroup: "event", command: "player_state_changed" }, async (res) => {
-			
 			const {pid,state} = res.heos.message.parsed
 			const player =  rheos_players.get(pid)
 			const op = player?.output 
-			const {type,mid,sid} =  await get_now_playing(pid)
-            if (type == 'song' && mid == 1 && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
-					console.log("-> RHEOS: EVENT:",player.name,JSON.stringify(res))
-					let zone = services.svc_transport.zone_by_output_id(op) 
-					if (zone){
-						if (state === "pause"  && (zone.is_pause_allowed )){
-							services.svc_transport.control(zone,'pause')
-						}
-						if (state === "play"  && zone.is_play_allowed){
-							services.svc_transport.control(zone,'play')
-						}
-						if (state === "play" && rheos.stop_timer ){
-							clearTimeout(rheos.stop_timer)
-							services.svc_transport.control(zone,'play')
-						}
-						if (state === "stop"){
-							rheos.stop_timer = setTimeout( () => {services.svc_transport.control(zone,'stop' )},3000)
-						}
+			const now_playing = await get_now_playing(pid)
+			const {type,mid,sid} = now_playing
+			if (type == 'song' && mid == 1 && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
+				console.log("-> RHEOS: EVENT:",player.name,JSON.stringify(res))
+				let zone = services.svc_transport.zone_by_output_id(op) 
+				if (zone){
+					if (state === "pause"  && (zone.is_pause_allowed )){
+						services.svc_transport.control(zone,'pause')
+					}
+					if (state === "play"  && zone.is_play_allowed){
+						services.svc_transport.control(zone,'play')
+					}
+					if (state === "play" && rheos.stop_timer ){
+						clearTimeout(rheos.stop_timer)
+						services.svc_transport.control(zone,'play')
+					}
+					if (state === "stop"){
+						rheos.stop_timer = setTimeout( () => {services.svc_transport.control(zone,'stop' )},3000)
 					}
 				}
+			}
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
@@ -332,7 +332,7 @@ async function get_players() {
 }
 async function get_now_playing(pid){
 	const res = await heos_command("player", "get_now_playing_media",{pid : pid})
-	return(res.payload)
+	return(res.payload || {})
 }
 async function read_player_status(pid){
 	const res = await heos_command("player", "get_play_state",{pid : pid})
@@ -441,7 +441,6 @@ async function start_roon() {
 				rheos.mysettings["A"+p.pid] = p.auto_play
 			})
 			await get_all_groups()
-			//rheos.mysettings.upnp_ip = roon.paired_core?.moo?.transport?.host  || ""
 			Array.isArray(rheos.myfixed_groups) && rheos.myfixed_groups.forEach(g => {rheos.mysettings[g.sum_group] = (g.resolution)})
 			cb(makelayout(rheos.mysettings))
 		},
@@ -454,14 +453,14 @@ async function start_roon() {
 					rheos.mysettings.clear_settings = 0
 					rheos.system_info = [ip.address(), os.type(), os.hostname(), os.platform(), os.arch()]
 					await start_heos()
-					console.log("RESET TO DEFAULTS")
+					console.log("-> RHEOS: RESET TO DEFAULTS")
 					update_status("Settings returned to defaults",true)
 				} 
 				if (settings.values.refresh_players) {
 					let players = await get_players().catch(err => {console.error(new Date().toLocaleString(),"⚠ Error Getting Players",err, reject())})
 					exec("pkill -f -9 UPnP")
 					await set_players(players)
-					console.log("REFRESHED PLAYERS")
+					console.log("-> RHEOS: REFRESHED PLAYERS")
 					update_status("Players refreshed",true)
 					settings.values.refresh_players = 0	
 				}
@@ -475,7 +474,7 @@ async function start_roon() {
 							process.kill(rheos.processes[player.pid].pid,'SIGKILL')
 						}
 						await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",JSON.stringify(player))})
-						console.log("RESET PLAYER RESOLUTION")
+						console.log("-> RHEOS: RESET PLAYER RESOLUTION")
 						let x = console.table([player], ["name", "pid", "model", "ip", "resolution","network","udn"]) 
 						update_status(`${player.name} set to ${player.resolution}`,false)
 					}
@@ -549,7 +548,7 @@ async function start_roon() {
 						delete rheos.connection
 						start_heos()
 					},3000)
-					console.log("RESTARTING WITH CONNECTION TO ",settings.values.default_player_ip )
+					console.log("-> RHEOS: RESTARTING WITH CONNECTION TO ",settings.values.default_player_ip )
 					update_status("Restarting With Connection to " + settings.values.default_player_ip,true)
 				}
 				roon.save_config("fixed_groups",rheos.myfixed_groups)
@@ -559,6 +558,7 @@ async function start_roon() {
 					await start_up()
 				}
 			}
+			console.log("-> RHEOS: SAVING SETTINGS")
 			Object.entries(rheos.mysettings).forEach(o => console.log("-> RHEOS: UPDATING",to_title_case(o[0].padEnd(20 ,".")),o[1] ? (o[1] === true || o[1] === 1) ? "On" : o[1] : o[1]===0 ? "Off" : "Not Defined"))
 			req.send_complete(l.has_error ? "NotValid" : "Success", { settings: l })
 		}
@@ -1190,7 +1190,6 @@ async function set_player_resolution(player){
 		</device>
 		</squeeze2upnp>`
 	await fs.writeFile("./UPnP/Profiles/" + (player.name) + ".xml", template).catch(()=>{console.error(new Date().toLocaleString(),"⚠ Failed to create template for "+device.name[0])})
-	
 	const saved_player = rheos.myplayers.find(o => o.pid == player.pid)
 	if (saved_player){
 		saved_player.resolution = player.resolution
@@ -1216,10 +1215,12 @@ async function choose_binary(fixed = false) {
 		} else if (os.arch() === 'ia32'){
 			await fs.chmod(fixed ?'./UPnP/Bin/squeezelite/squeezelite-i386':'./UPnP/Bin/RHEOS-x86', 0o555)
 			return(fixed ? './UPnP/Bin/squeezelite/squeezelite-i386' :'./UPnP/Bin/RHEOS-x86')
+		} else {
+			console.error(new Date().toLocaleString(),"⚠ UNSUPPORTED ARCHITECTURE  - ABORTING",os)
+			process.exit(1)
 		}
 		} catch {
 			console.error(new Date().toLocaleString(),"⚠ UNABLE TO LOAD LINUX BINARIES - ABORTING",os)
-			process.exit(1)
 		}
 	}
 	else if (os.platform() == 'win32') {
@@ -1301,7 +1302,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-13",
+		display_version: "0.9.3-14",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
