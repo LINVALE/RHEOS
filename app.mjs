@@ -122,55 +122,52 @@ async function add_listeners() {
 			const {pid,state} = res.heos.message.parsed
 			const player =  rheos_players.get(pid)
 			
-			console.log("-> RHEOS : PLAYER STATE CHANGED",player?.name,state,player?.airplay ? "NON HEOS INPUT" : "HEOS INPUT")
+			log && console.log("-> RHEOS: PLAYER STATE CHANGED",player.name,state,player?.airplay ? "NON HEOS INPUT" : "HEOS INPUT")
 			
-			if(!player.airplay && (!player.gid || player.pid == player.gid)){
+			if(!player?.airplay && (!player.gid || player.pid == player.gid)){
 				const op = player?.output 
 				const now_playing = await get_now_playing(pid)
-				const {type,mid,sid} = now_playing
+				const  {type,mid,sid,qid} = now_playing
 				const zone = services.svc_transport.zone_by_output_id(op) 
-				console.log("> RHEOS: NOW PLAYING",JSON.stringify(now_playing))
+				console.log("-> RHEOS: NOW PLAYING",player.name,player.output,type,mid,sid,qid)
 				if (mid == 1 && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid) && !fixed_players.has(player.pid)){
 					console.log("-> RHEOS: EVENT:",player.name,JSON.stringify(res))
-					if (zone){
-						if (state === "pause"  && (zone.is_pause_allowed )){
-							services.svc_transport.control(zone,'pause')
+						if (zone){
+							if (state === "pause"  && (zone.is_pause_allowed )){
+								log && console.log("-> RHEOS: PAUSING HEOS ZONE", player?.name)
+								services.svc_transport.control(zone,'pause')
+							}
+							if (state === "play"  && zone?.is_play_allowed){
+								log && console.log("-> RHEOS: PLAYING READY HEOS ZONE", player?.name)
+								clearTimeout(rheos.stop_timer)
+								services.svc_transport.control(zone,'play')
+							} else if (state === "play" && !rheos.stop_timer ){
+								rheos.stop_timer = setTimeout( (zone) => {console.log("-> RHEOS: DELAYED PLAYING HEOS ZONE",zone?.display_name);
+								zone && services.svc_transport.control(zone,'play' )}
+								,100,zone)
+							}
+							if (state === "play" && rheos.stop_timer ){
+								log && console.log("-> RHEOS: PLAYING WAITING HEOS ZONE", player?.name)
+								clearTimeout(rheos.stop_timer)
+								services.svc_transport.control(zone,'play')
+							}
+							if (state === "stop"){
+								rheos.stop_timer = setTimeout( (zone) => {console.log("-> RHEOS: DELAYED STOPPING HEOS ZONE",zone?.display_name);
+								zone && services.svc_transport.control(zone,'stop' )}
+								,5000,zone)
+							}
 						}
-						if (state === "play"  && zone?.is_play_allowed){
-							services.svc_transport.control(zone,'play')
-						} else if (state === "play" && !rheos.stop_timer ){
-							rheos.stop_timer = setTimeout( (zone) => {console.log("-> RHEOS: DELAYED PLAYING HEOS ZONE",zone?.display_name);
-							zone && services.svc_transport.control(zone,'play' )}
-							,1000,zone)
-						}
-						if (state === "play" && rheos.stop_timer ){
-							clearTimeout(rheos.stop_timer)
-							services.svc_transport.control(zone,'play')
-						}
-						if (state === "stop"){
-							rheos.stop_timer = setTimeout( (zone) => {console.log("-> RHEOS: DELAYED STOPPING HEOS ZONE",zone?.display_name);
-							zone && services.svc_transport.control(zone,'stop' )}
-							,5000,zone)
-						}
-					}
-				} else if (!fixed_players.has(player.pid)) {
+				} else {
+					const zone = services.svc_transport.zone_by_output_id(player?.output)
+					log && console.log("-> RHEOS: INPUT CHANGED  TO", player?.name,JSON.stringify(now_playing))
+					rheos.stop_timer = setTimeout( (zone) => {console.log("-> RHEOS: DELAYED STOPPING HEOS ZONE",zone?.display_name);zone && services.svc_transport.control(zone,'stop' )},5000,zone)
 
-					console.log("-> RHEOS: STOPPING NON-HEOS ZONE",zone?.display_name);services.svc_transport.control(zone,'stop' )
-
-				} 
-			}	
-		})
-		.on({ commandGroup: "event", command: "Xplayer_now_playing_changed" }, async (res) => {
-			const {pid} = res.heos.message.parsed
-			const player = rheos_players.get(pid)
-			const op = player.output
-			if((!player.gid || player.pid == player.gid)){
-				const now_playing = await get_now_playing(pid)
-				const {type,mid,sid} = now_playing
-				if (mid !=='1' && sid == 1024){
-					log &&console.log("-> RHEOS: NOW PLAYING",player.name,JSON.stringify(now_playing))
 				}
-			}
+			}else {
+				const zone = services.svc_transport.zone_by_output_id(player?.output)
+				log && console.log("-> RHEOS: PLAY STATE CHANGED NON-HEOS ZONE", state,player?.name,zone.display_name)
+				zone && services.svc_transport.control(zone,'stop')
+			}		
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
@@ -201,7 +198,8 @@ async function add_listeners() {
 			const op = rheos_players.get(res.heos.message.parsed.pid)?.output
 			const zone  = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
 			console.log("<- RHEOS: RETRYING ZONE PLAY",zone.display_name)
-			services.svc_transport.control(zone,'play')
+			services.svc_transport.control(zone,'stop',()=> {setTimeout((zone)=> {services.svc_transport.control(zone,'play')},1000,zone)})
+			
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 			log && console.log("-> RHEOS: EVENT:",JSON.stringify(res))
@@ -967,32 +965,23 @@ async function update_zones(zones){
 			let fixed = {}
 			let pending_index = -1
 			
-			if (z.outputs && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || z.outputs[0].source_controls[0].display_name.includes ("🔗")) || z.outputs[0].source_controls[0].display_name.includes ("​")) ){
+			if (z.outputs && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || z.outputs[0].source_controls[0].display_name.includes ("🔗")) || z.outputs[0].source_controls[0].display_name.includes ("​"))){
 				pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
 				if (rheos.mysettings.fixed_control ){	
-					//console.log("DIPLAY NEAME SEEK",z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name)
 					fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
-					
 					if (fixed?.gid ){ 
-						log && console.log("-> RHEOS : FIXED GROUP CHANGE",JSON.stringify(fixed))
-						
 						fixed.state = z.state
 						const index = group_pending.findIndex(z => z.group.gid === fixed.gid)
-						
-						console.log("FIXED GROUP OPS",index,fixed.players.map(p => p.name),fixed.state,z.is_pause_allowed)
+						log && console.log("-> RHEOS: FIXED GROUP CHANGE",fixed.name,index,fixed.state,z.is_pause_allowed)
 						if (z.outputs.length == 1 && index == -1 && z.state == "playing"){
-							
-							
-							//if (index == -1){
-								log && console.log("-> RHEOS : SETTING FIXED GROUP",JSON.stringify(fixed?.name))
+								log && console.log("-> RHEOS: SETTING FIXED GROUP",JSON.stringify(fixed?.name))
 								const max_vol = await set_fixed_group(fixed.players)
 								services.svc_transport.change_volume( z.outputs[0],'absolute',max_vol,  
 								services.svc_transport.transfer_zone( z,services.svc_transport.zone_by_output_id(rheos_players.get(fixed.gid)?.output)))         
 								group_pending.push({zone : z , group : fixed, status : "transferring"})	
-							//} //else {console.log("Z FIXED",z)}
 						}
 						if (z.outputs.length > 1 && index == -1 && (z?.state == 'paused' || (z?.state == "stopped" && z?.queue_items_remaining === 0))){
-							log && console.log("-> RHEOS : CLEARING FIXED GROUP",JSON.stringify(fixed?.name))
+							log && console.log("-> RHEOS: CLEARING FIXED GROUP",JSON.stringify(fixed?.name))
 							const op = rheos_outputs.get(z.outputs[0].output_id)
 							if (op){
 								services.svc_transport.ungroup_outputs(z.outputs)
@@ -1000,21 +989,19 @@ async function update_zones(zones){
 							}
 						}
 					} 
-				
 					if (pending_index >-1){
 						const pending = group_pending[pending_index]
 						if (pending.status == "transferring"){
-							log && console.log("-> RHEOS : TRANSFERRING TO FIXED GROUP",JSON.stringify(pending.zone.display_name))
+							log && console.log("-> RHEOS: TRANSFERRING TO FIXED GROUP",JSON.stringify(pending.zone.display_name))
 							let zone_outputs = pending.group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
 							zone_outputs.push(pending.zone.outputs[0])
 							zone_outputs = zone_outputs.filter(Boolean)
 							pending.status="grouping" 
-							log && console.log("-> RHEOS : GROUPING FIXED GROUP",JSON.stringify(zone_outputs.map(o => o.display_name)))
+							log && console.log("-> RHEOS: GROUPING FIXED GROUP",JSON.stringify(zone_outputs.map(o => o.display_name)))
 							services.svc_transport.group_outputs(zone_outputs)
 						} 
 					}
 				}
-				
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))				
 				if (index>-1 ){	
 					const player = rheos_outputs.get(z.outputs[index]?.output_id)?.player
@@ -1085,10 +1072,10 @@ async function update_zones(zones){
 				if (z.state == "playing"){
 					const player = [...rheos_players.values()].find(p => z.outputs[0].source_controls[0].display_name.includes(p.name))
 					let zone = services.svc_transport.zone_by_output_id(player?.output)
-					player.airplay || zone && services.svc_transport.control(zone,'pause',()=>{player.airplay = true})		
+					player?.airplay || zone && services.svc_transport.control(zone,'pause',()=>{player.airplay = true})		
 				} else if (z.state == "paused" || z.state == "stopped"){
 					const player = [...rheos_players.values()].find(p => z.outputs[0].source_controls[0].display_name.includes(p.name))
-					player?.airplay && services.svc_transport.control(z,player.airplay ?'play' : 'stop',() => {player.airplay = false})
+					player?.airplay && services.svc_transport.control(z,player?.airplay ?'play' : 'stop',() => {player.airplay = false})
 				}
 			} else { 	
 				const zone =(rheos_zones.get(z))
