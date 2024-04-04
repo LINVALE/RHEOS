@@ -1,4 +1,4 @@
-const version = "0.9.3-20"
+const version = "0.9.4-0"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -83,10 +83,8 @@ async function add_listeners() {
 				if (pending_index >-1){
 					group_pending[pending_index].status ="grouped"
 						let int = setInterval((gid) => {
-							console.log(rheos_players.get(gid))
 							const zone = services.svc_transport.zone_by_output_id(rheos_players.get(gid)?.output)
-							console.log(zone.display_name,zone.is_play_allowed)
-							 if (zone.state == "playing"|| zone.state == "loading" ) {
+							if (zone.state == "playing"|| zone.state == "loading" ) {
 								group_pending.splice(pending_index,1)
 								clearInterval(int)
 							} else {
@@ -428,12 +426,15 @@ async function create_fixed_group_control(){
 	return
 }
 async function remove_fixed_group(sum_group,remove) {	
+	console.log("-> RHEOS: REMOVING FIXED GROUP",)
 		let index = rheos.myfixed_groups.findIndex(g=> sum_group == g.sum_group) 
 		if (index > -1 ){
-			let output = [...rheos_outputs.values()].find(o =>get_output_name(o) == rheos.myfixed_groups[index].display_name)
+			
+			const output = [...rheos_outputs.values()].find(o => o.source_controls[0].display_name == rheos.myfixed_groups[index].display_name)
+			console.log("->",new Date().toLocaleString(),"RHEOS: REMOVING FIXED GROUP",output?.display_name)
 			if (output){
-				fixed_groups.delete(sum_group)		
 				delete rheos.mysettings[sum_group]
+				fixed_groups.delete(sum_group)
 				services.svc_transport.ungroup_outputs([output])
 				remove && rheos.myfixed_groups.splice(index,1)
 				process.kill(Number(rheos.processes[Math.abs(sum_group).toString(16)].pid),'SIGKILL')
@@ -968,7 +969,7 @@ async function update_zones(zones){
 				if (rheos.mysettings.fixed_control ){	
 					fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
 					if (fixed?.gid ){ 
-						fixed.state = z.state
+						//fixed.state = z.state
 						const index = group_pending.findIndex(z => z.group.gid === fixed.gid)
 						if (z.outputs.length == 1 && index == -1 && z.state == "playing"){
 								log && console.log("-> ",new Date().toLocaleString(),"RHEOS: SETTING FIXED GROUP",JSON.stringify(fixed?.name))
@@ -977,7 +978,7 @@ async function update_zones(zones){
 								services.svc_transport.transfer_zone( z,services.svc_transport.zone_by_output_id(rheos_players.get(fixed.gid)?.output)))         
 								group_pending.push({zone : z , group : fixed, status : "transferring"})	
 						}
-						else if (pending_index == -1 && z.outputs.length > 1 && index == -1 && (z?.state == 'paused' || (z?.state == "stopped")) ){
+						else if (index == -1 && (z.state == "paused" || z.state == "stopped" ) && z.outputs.length === fixed.players.length + 1) {
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: CLEARING FIXED GROUP",JSON.stringify(fixed?.name))
 							const op = rheos_outputs.get(z.outputs[0].output_id)
 							if (op){
@@ -987,10 +988,8 @@ async function update_zones(zones){
 						}
 					} 
 					if (pending_index >-1){
-						
-						const pending = group_pending[pending_index]
-						console.log("PENDING",pending)
-						if (pending.status == "transferring"){
+						let pending = group_pending[pending_index]
+						if (pending?.status == "transferring"){
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: TRANSFERRING TO FIXED GROUP",JSON.stringify(pending.zone.display_name))
 							let zone_outputs = pending.group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
 							zone_outputs.push(pending.zone.outputs[0])
@@ -998,7 +997,10 @@ async function update_zones(zones){
 							pending.status="grouping" 
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: GROUPING FIXED GROUP",JSON.stringify(zone_outputs.map(o => o.display_name)))
 							services.svc_transport.group_outputs(zone_outputs)
-						} 
+						} else {
+
+							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: PENDING",pending?.status)
+						}
 					}
 				}
 				const index =   (z.outputs.findIndex(o => o.source_controls[0].status == "standby"))				
@@ -1057,9 +1059,9 @@ async function update_zones(zones){
 					const heos_group = group?.players.map(player => player.pid);
 				    if (new_roon_group.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
 						await group_enqueue(new_roon_group)	
-					} else if (group_pending[pending_index]){	
-						group_pending[pending_index].status ="grouped"
-					}
+					}// else if (group_pending[pending_index]){	
+					//	group_pending[pending_index].status ="grouped"
+					//}
 					z.group = group 
 				}
 				rheos_zones.set(z.zone_id,z);
@@ -1091,7 +1093,7 @@ async function update_zones(zones){
 	}).catch(err => console.error(new Date().toLocaleString(),"⚠ ERROR UPDATING ZONES",err))
 }
 async function update_player_volume(op,player){
-	if (!op?.volume){return}
+	if (!op?.volume || !rheos_players.get(pid)){return}
 	let {is_muted,value} = op.volume
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
@@ -1288,8 +1290,11 @@ async function group_enqueue(group) {
 	Array.isArray(group) && (group = group.filter(o => o))
 	if (group) {
 		return new Promise(async (resolve, reject) => {
-		group_buffer.push({ group, resolve, reject })
-		group_dequeue().catch((err)=>{log && console.error(new Date().toLocaleString(),"Deque error",err)})
+		const group_sums = group_buffer.map(o => sum_array(o.group))
+		if (group_sums.findIndex(o => o === sum_array(group)) == -1){
+			group_buffer.push({ group, resolve, reject })
+			group_dequeue().catch((err)=>{log && console.error(new Date().toLocaleString(),"Deque error",err)})	
+		} 
 		})
 	}
 	return
@@ -1329,7 +1334,8 @@ return new Promise(async function (resolve) {
 		}
 		const remove = old_groups.filter(group => !rheos_groups.has(group))
 		for (let group of remove){
-			services.svc_transport.ungroup_outputs(services.svc_transport.zone_by_output_id(rheos_players.get(group)?.output)?.outputs)
+			rheos_groups.delete(group.gid)
+			//services.svc_transport.ungroup_outputs(services.svc_transport.zone_by_output_id(rheos_players.get(group)?.output)?.outputs)
 		}
 	} else {
 		const remove = old_groups
@@ -1346,7 +1352,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-20",
+		display_version: "0.9.4-0",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
