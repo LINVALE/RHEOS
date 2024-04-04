@@ -1093,7 +1093,7 @@ async function update_zones(zones){
 	}).catch(err => console.error(new Date().toLocaleString(),"⚠ ERROR UPDATING ZONES",err))
 }
 async function update_player_volume(op,player){
-	if (!op?.volume || !rheos_players.get(pid)){return}
+	if (!op?.volume || !rheos_players.get(player.pid)){return}
 	let {is_muted,value} = op.volume
 	if (!player?.volume){return}
 	let {mute = "off",level = 0} = player?.volume 
