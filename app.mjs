@@ -1,4 +1,4 @@
-const version = "0.9.3-19"
+const version = "0.9.3-20"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -83,15 +83,14 @@ async function add_listeners() {
 				if (pending_index >-1){
 					group_pending[pending_index].status ="grouped"
 						let int = setInterval((gid) => {
+							console.log(rheos_players.get(gid))
 							const zone = services.svc_transport.zone_by_output_id(rheos_players.get(gid)?.output)
-							if (zone.is_play_allowed){
-								services.svc_transport.control(zone,'play')
-							}
-							else if (zone.state == "playing" ) {
+							console.log(zone.display_name,zone.is_play_allowed)
+							 if (zone.state == "playing"|| zone.state == "loading" ) {
 								group_pending.splice(pending_index,1)
 								clearInterval(int)
 							} else {
-								log && console.log("ZONE PENDING READY")
+								services.svc_transport.control(zone,'play')
 							}
 						},1000,group.gid)
 				} else {
@@ -128,11 +127,12 @@ async function add_listeners() {
 			log && console.log("-> ",new Date().toLocaleString(),"RHEOS: EVENT:",JSON.stringify(res))
 			const {pid,state} = res.heos.message.parsed
 			const player =  rheos_players.get(pid)
-			const now_playing = await get_now_playing(pid)
-			log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STATE CHANGED:",JSON.stringify(now_playing))
 			if(!fixed_players.has(player?.pid)&&!player?.airplay && (!player?.gid || player?.pid == player?.gid)){
+				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: EVENT:",JSON.stringify(res))
+				const now_playing = await get_now_playing(pid)
 				const op = player?.output 
 				const  {mid,sid} = now_playing
+				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STATE CHANGED:",JSON.stringify(now_playing))
 				const zone = services.svc_transport.zone_by_output_id(op) 
 				if (mid == 1 && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid)){
 					log && console.log("-> ",new Date().toLocaleString(),"RHEOS: EVENT:",player.name,JSON.stringify(res))
@@ -168,7 +168,7 @@ async function add_listeners() {
 						log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STOPPING HEOS ZONE",zone?.display_name)
 						zone && services.svc_transport.control(zone,'stop' )}
 					,3000,zone)
-				}
+				} 
 			}
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
@@ -959,11 +959,11 @@ async function update_outputs(outputs,player){
 async function update_zones(zones){
 	return new Promise(async function (resolve) {
 		for (const z of zones) {
-			
 			let fixed = {}
 			let pending_index = -1
-			
+			const old_zone =  rheos_zones.get(z?.zone_id)
 			if (z.outputs && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || z.outputs[0].source_controls[0].display_name.includes ("🔗")) || z.outputs[0].source_controls[0].display_name.includes ("​"))){
+				if (z.state == "playing" && z.now_playing?.one_line !== old_zone?.now_playing?.one_line){console.log("-> RHEOS: NOW PLAYING",z.display_name,JSON.stringify(z.now_playing?.one_line))}
 				pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
 				if (rheos.mysettings.fixed_control ){	
 					fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
@@ -977,20 +977,19 @@ async function update_zones(zones){
 								services.svc_transport.transfer_zone( z,services.svc_transport.zone_by_output_id(rheos_players.get(fixed.gid)?.output)))         
 								group_pending.push({zone : z , group : fixed, status : "transferring"})	
 						}
-						else if (pending_index == -1 && z.outputs.length > 1 && index == -1 && (z?.state == 'paused' || (z?.state == "stopped" && z?.queue_items_remaining === 0))){
+						else if (pending_index == -1 && z.outputs.length > 1 && index == -1 && (z?.state == 'paused' || (z?.state == "stopped")) ){
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: CLEARING FIXED GROUP",JSON.stringify(fixed?.name))
 							const op = rheos_outputs.get(z.outputs[0].output_id)
 							if (op){
 								services.svc_transport.ungroup_outputs(z.outputs)
 								fixed.players.forEach(p => fixed_players.delete(p.pid))	
 							}
-						} else if (group_pending.length){
-
-							console.log("-> ",new Date().toLocaleString(),"RHEOS:FIXED GROUP PROGRESS",pending_index ? group_pending[pending_index]?.status : "NOT INDEXED")
 						}
 					} 
 					if (pending_index >-1){
+						
 						const pending = group_pending[pending_index]
+						console.log("PENDING",pending)
 						if (pending.status == "transferring"){
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: TRANSFERRING TO FIXED GROUP",JSON.stringify(pending.zone.display_name))
 							let zone_outputs = pending.group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
@@ -1050,7 +1049,7 @@ async function update_zones(zones){
 							rheos.block_avr_update = false
 						}
 				}  
-				const old_zone =  rheos_zones.get(z?.zone_id)
+				
 				if (z.outputs.length > 1){
 					const group = (rheos_groups.get(get_pid(get_output_name(z.outputs[0]))))
 					const old_roon_group = old_zone?.outputs?.map(output => {get_pid(get_output_name(output))})
@@ -1168,8 +1167,8 @@ async function heos_command(commandGroup, command, attributes = {}, timer = 5000
 				rheos.connection[0].once({ commandGroup: commandGroup, command: command, attributes }, (res) => {
 				resolve(res)
 			})} 
-			else if (res.heos.message.unparsed.includes("processing previous command")) {
-				reject(res)
+			else if (res.heos.message.unparsed.includes("Processing previous command")) {
+				resolve(res)
 			} 
 			else if (res.heos.result === "success") {
 				resolve(res)
@@ -1347,7 +1346,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.3-19",
+		display_version: "0.9.3-20",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
