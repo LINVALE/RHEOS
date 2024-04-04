@@ -22,6 +22,7 @@
         "log": 0,
         "clear_settings": 0,
         "refresh_players": 0,
-        "upnp_ip" : ""
+        "upnp_ip" : "",
+        "two_way" : 1
         }
     }
