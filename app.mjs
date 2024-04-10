@@ -1220,7 +1220,7 @@ async function set_player_resolution(player){
 	switch (player.resolution) {
 		case  ( "HR") :{
 			device.enabled = '1'
-			device.mode = ("flc:0,r:-48000,s:24").toString().concat(rheos.mysettings.flow ? ",flow" : "")
+			device.mode = ("flc:0,r:-192000,s:24").toString().concat(rheos.mysettings.flow ? ",flow" : "")
 			device.sample_rate = '192000'	
 		} 
 		break
