@@ -2,8 +2,8 @@
     "settings": {
         "default_player_ip": "",
         "host_ip": "",
-        "streambuf_size": 2621440,
-        "output_size": 12582912,
+        "streambuf_size": "",
+        "output_size": "",
         "stream_length": -1,
         "seek_after_pause": 0,
         "volume_on_play": -1,
