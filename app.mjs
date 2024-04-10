@@ -1,4 +1,4 @@
-const version = "0.9.5-0"
+const version = "0.9.5-1"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -127,14 +127,11 @@ async function add_listeners() {
 				if (player && (player?.pid == player?.gid || !player.gid) ){
 					const now_playing = await get_now_playing(pid);
 					const op = player?.output 
-					const  {mid,sid} = now_playing
-					console.log("-> ",new Date().toLocaleString(),"RHEOS: LEAD PLAYER NOW PLAYING:",JSON.stringify(now_playing))
+					const  {type,song,mid,sid,qid} = now_playing
+					console.log("-> ",new Date().toLocaleString(),"RHEOS: LEAD PLAYER NOW PLAYING:",type,song,mid,sid,qid)
 					if (mid === '1' && sid == 1024){
-						console.log(player.name,"PLAYING ROON")
 						player.airplay = false
 					} else {
-						const zone = services.svc_transport.zone_by_output_id(op) 
-						console.log(player.name,"PLAYING NON ROON",zone.display_name)
 						player.airplay = true
 					}
 				} 
@@ -147,7 +144,6 @@ async function add_listeners() {
 			if (rheos.mysettings.two_way){
 				if(!fixed_players.has(player?.pid)&&!player?.airplay && (!player?.gid || player?.pid == player?.gid)){
 					log && console.log("-> ",new Date().toLocaleString(),"RHEOS: EVENT:",JSON.stringify(res))
-					
 					const now_playing = await get_now_playing(pid)
 					const op = player?.output 
 					const  {mid,sid} = now_playing
@@ -171,6 +167,8 @@ async function add_listeners() {
 								zone && services.svc_transport.control(zone,'pause' )}
 								,1000,zone)
 							} else if (state === "play"  && zone?.is_play_allowed){
+
+
 								log && console.log("-> ",new Date().toLocaleString(),"RHEOS: PLAYING HEOS ZONE", player?.name)
 								clearTimeout(rheos.stop_timer)
 								services.svc_transport.control(zone,'play')
@@ -182,17 +180,14 @@ async function add_listeners() {
 							} 
 						}
 					} else if (state == "stop"&& zone?.is_pause_allowed){
-						clearTimeout(rheos.stop )
+						clearTimeout(rheos.stop_timer )
 						log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STOPPING HEOS ZONE  IN 3 SECS AS NOT CONNECTED TO ROON STREAM AND STOPPED", player?.name)
 						rheos.stop_timer = setTimeout( (zone) => {
 							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STOPPING HEOS ZONE AS STOPPED",zone?.display_name)
 							zone && services.svc_transport.control(zone,'stop' )}
 						,5000,zone)
 					} 
-				} else {
-					const now_playing = await get_now_playing(pid)
-					console.log(player.name,state,player.airplay,now_playing)
-				}
+				} 
 			}	
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
@@ -421,10 +416,11 @@ async function unload_fixed_groups(){
 	return
 }
 async function create_fixed_group(group){
+	log && console.log("-> RHEOS : CREATING FIXED GROUP",JSON.stringify(group))
 	const fixed = Math.abs(group.sum_group).toString(16);
     const name = [... new Set(group.name.split("+"))]
 	group.display_name = "🔗 " +name[0].trim()+" + " + (name.length -1)
-	rheos.mysettings[group.sum_group.toString()]=[group.resolution]
+	await group_enqueue(group.gid)	
 	if (! fixed_groups.has(group.sum_group)){
 		fixed_groups.set(group.sum_group,group)
 		rheos.mysettings[group.sum_group.toString()]=[group.resolution]
@@ -459,10 +455,8 @@ async function create_fixed_group_control(){
 	return
 }
 async function remove_fixed_group(sum_group,remove) {	
-	console.log("-> RHEOS: REMOVING FIXED GROUP",)
 		let index = rheos.myfixed_groups.findIndex(g=> sum_group == g.sum_group) 
 		if (index > -1 ){
-			
 			const output = [...rheos_outputs.values()].find(o => o.source_controls[0].display_name == rheos.myfixed_groups[index].display_name)
 			console.log("->",new Date().toLocaleString(),"RHEOS: REMOVING FIXED GROUP",output?.display_name)
 			if (output){
@@ -473,6 +467,8 @@ async function remove_fixed_group(sum_group,remove) {
 				process.kill(Number(rheos.processes[Math.abs(sum_group).toString(16)].pid),'SIGKILL')
 				delete rheos.processes[Math.abs(sum_group).toString(16)]
 			}   
+		} else {
+			console.error("-> RHEOS: UNABLE TO FIND FIXED GROUP",sum_group)
 		}
    	return 
 }
@@ -589,9 +585,9 @@ async function start_roon() {
 					clearTimeout(rheos.monitor)
 				} 
 				const select= ({
-					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip,two_way
+					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip,two_way,cache
 			    }) => ({
-					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip,two_way 
+					default_player_ip,host_ip,streambuf_size,output_size,stream_length,seek_after_pause,volume_on_play,volume_feedback,accept_nexturi,flac_header,keep_alive,next_delay,send_coverart,send_metadata,flow,max_safe_vol,avr_control,fixed_control,log_limit,log,clear_settings,refresh_players,upnp_ip,two_way,cache
 				})
 				const selected = select(rheos.mysettings)
 				const changed = select(settings.values)
@@ -997,7 +993,11 @@ async function update_zones(zones){
 			let pending_index = -1
 			const old_zone =  rheos_zones.get(z?.zone_id)
 			if (z.outputs && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || z.outputs[0].source_controls[0].display_name.includes ("🔗")) || z.outputs[0].source_controls[0].display_name.includes ("​"))){
-				if (z.state == "playing" && z.now_playing?.one_line !== old_zone?.now_playing?.one_line){console.log("-> RHEOS: NOW PLAYING",z.display_name,JSON.stringify(z.now_playing?.one_line))}
+				//if (z.state == "playing" && z.now_playing?.one_line !== old_zone?.now_playing?.one_line){console.log("-> RHEOS: NOW PLAYING",z.display_name,JSON.stringify(z.now_playing?.one_line),z.now_playing?.length,z.now_playing?.seek_position)}
+				if (z.state == "playing"){
+					console.log("-> RHEOS: NOW PLAYING",z.display_name,JSON.stringify(z.now_playing?.one_line),z.now_playing?.length,z.now_playing?.seek_position);
+					//7071z.now_playing?.length>2 && setTimeout((z)=> {services.svc_transport.control(z,'next')},(3000 + z.now_playing?.length*1000),z)
+				}
 				pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
 				if (rheos.mysettings.fixed_control ){	
 					fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
@@ -1220,7 +1220,7 @@ async function set_player_resolution(player){
 	switch (player.resolution) {
 		case  ( "HR") :{
 			device.enabled = '1'
-			device.mode = ("flc:0,r:-48000,s:16").toString().concat(rheos.mysettings.flow ? ",flow" : "")
+			device.mode = ("flc:0,r:-48000,s:24").toString().concat(rheos.mysettings.flow ? ",flow" : "")
 			device.sample_rate = '192000'	
 		} 
 		break
@@ -1253,7 +1253,7 @@ async function set_player_resolution(player){
 			<accept_nexturi>${rheos.mysettings.accept_nexturi}</accept_nexturi>
 			<next_delay>${rheos.mysettings.next_delay}</next_delay>
 			<keep_alive>${rheos.mysettings.keep_alive}</keep_alive>
-			<flow>${rheos.mysettings.flow}</flow>
+			<cache>${rheos.mysettings.cache}</cache>
 			<send_metadata>${rheos.mysettings.send_metadata}</send_metadata>
 			<send_coverart>${rheos.mysettings.send_coverart}</send_coverart>
 			<log_limit>${rheos.mysettings.log_limit}</log_limit>
@@ -1382,7 +1382,7 @@ async function connect_roon() {
 	const roon = new RoonApi({
 		extension_id: "com.RHEOS.latest",
 		display_name: "Rheos",
-		display_version: "0.9.5-0",
+		display_version: "0.9.5-1",
 		publisher: "RHEOS",
 		email: "rheos.control@gmail.com",
 		website: "https:/github.com/LINVALE/RHEOS",
@@ -1533,11 +1533,12 @@ function makelayout(settings) {
 		type: "group", title: "UPnP SETTINGS ", subtitle: "Experimental settings for UPnP devices",collapsable: true, items: [
 		{ title: "● Buffer Size", type: "dropdown", setting: 'streambuf_size', values: [{ title: "Small", value: 524288 }, { title: "Medium", value: 524288 * 2 }, { title: 'Large', value: 524288 * 3 },{ title: 'Giant', value: 524288 * 5},{ title: 'Unlimited', value: ""}] },
 		{ title: "● Output Size", type: "dropdown", setting: 'output_size', values: [{ title: 'Small', value: 4194304 }, { title: 'Medium', value: 4194304 * 2 }, { title: 'Large', value: 4194304 * 3 },{ title: 'Unlimited', value: ""}] },
-		{ title: "● Stream Length", type: "dropdown", setting: 'stream_length', values: [{ title: "no length", value: -1 }, { title: 'chunked', value: -3 }] },
+		{ title: "● Stream Length", type: "dropdown", setting: 'stream_length', values: [{ title: "No length", value: -1 }, { title: 'Chunked', value: -3 }, { title: 'If known', value: -2 },{ title: 'Estimated', value: 0 }]  },
 		{ title: "● Seek After Pause", type: "dropdown", setting: 'seek_after_pause', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
 		{ title: "● Volume On Play", type: "dropdown", setting: 'volume_on_play', values: [{ title: "On Start Up", value: 0 }, { title: 'On Play', value: 1 }, { title: "Never", value: -1 }] },
 		{ title: "● Volume Feedback", type: "dropdown", setting: 'volume_feedback', values: [{ title: "On", value: 1 }, { title: 'Off', value: 0 }] },
-		{ title: "● Accept Next URI", type: "dropdown", setting: 'accept_nexturi', values: [{ title: "Off", value: 0 }, { title: 'Force', value: 1 }, { title: "Manual", value: -1 }] },
+		{ title: "● Accept Next URI", type: "dropdown", setting: 'accept_nexturi', values: [{ title: "Off", value: 0 }, { title: 'On', value: 1 }, { title: "Force", value: -1 }] },
+		{ title: "● Cache", type: "dropdown", setting: 'cache', values: [{ title: "Memory", value: 0 }, { title: 'Infinite', value: 1 }, { title: "Disk", value: 3 }] },
 		{ title: "● Flac Header", type: "dropdown", setting: 'flac_header', values: [{ title: "None", value: 0 }, { title: 'Set sample and checksum to 0', value: 1 }, { title: "Reinsert fixed", value: 2 }, { title: "Reinsert calculated", value: 3 }] },
 		{ title: "● Keep Alive", type: "integer", setting: 'keep_alive', min: -1, max: 120 },
 		{ title: "● Next Delay", type: "integer", setting: 'next_delay', min: 0, max: 60 },

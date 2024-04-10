@@ -4,7 +4,7 @@
         "host_ip": "",
         "streambuf_size": 2621440,
         "output_size": 12582912,
-        "stream_length": -3,
+        "stream_length": -1,
         "seek_after_pause": 0,
         "volume_on_play": -1,
         "volume_feedback": 0,
@@ -23,6 +23,7 @@
         "clear_settings": 0,
         "refresh_players": 0,
         "upnp_ip" : "",
-        "two_way" : 1
+        "two_way" : 1,
+        "cache" : 0
         }
     }
