@@ -131,7 +131,7 @@ async function add_listeners() {
 					console.log("-> ",new Date().toLocaleString(),"RHEOS: LEAD PLAYER NOW PLAYING:",type,song,mid,sid,qid)
 					if (mid === '1' && sid == 1024){
 						player.airplay = false
-					} else {
+					} else if (mid) {
 						player.airplay = true
 					}
 				} 
@@ -142,7 +142,7 @@ async function add_listeners() {
 			const {pid,state} = res.heos.message.parsed
 			const player =  rheos_players.get(pid)
 			if (rheos.mysettings.two_way){
-				if(!fixed_players.has(player?.pid)&&!player?.airplay && (!player?.gid || player?.pid == player?.gid)){
+				if(!fixed_players.has(player?.pid) && !player?.airplay && (!player?.gid || player?.pid == player?.gid)){
 					log && console.log("-> ",new Date().toLocaleString(),"RHEOS: EVENT:",JSON.stringify(res))
 					const now_playing = await get_now_playing(pid)
 					const op = player?.output 
@@ -150,10 +150,10 @@ async function add_listeners() {
 					log && console.log("-> ",new Date().toLocaleString(),"RHEOS: STATE CHANGED - NOW PLAYING",JSON.stringify(now_playing))
 					const zone = services.svc_transport.zone_by_output_id(op) 
 					if (mid === '1' && sid == 1024 && rheos_outputs.get(op) && (!player.gid || player.pid === player.gid)){
-						console.log("-> RHEOS: PLAYER PLAYING FROM ROON",player.name,player.airplay)
+						log &&console.log("-> RHEOS: PLAYER PLAYING FROM ROON",player.name,player.airplay)
 						player.airplay = false
 						if (zone){
-							console.log("-> ",new Date().toLocaleString(),"RHEOS: PLAYER STATE CHANGED",state,zone.display_name,zone.state,zone.is_play_allowed)
+							log && console.log("-> ",new Date().toLocaleString(),"RHEOS: PLAYER STATE CHANGED",state,zone.display_name,zone.state,zone.is_play_allowed ? "and pay is allowed" : "but play is not allowed")
 							if((state == "play" && (zone.state == "playing" || zone.state == "loading")) || (state == "pause" && (zone.state == "paused")) ){
 								clearTimeout(rheos.stop_timer)
 								log && console.log("-> ",new Date().toLocaleString(),"RHEOS: ",player.name," IS ALREADY IN THE STATE WE WANT")
@@ -167,8 +167,6 @@ async function add_listeners() {
 								zone && services.svc_transport.control(zone,'pause' )}
 								,1000,zone)
 							} else if (state === "play"  && zone?.is_play_allowed){
-
-
 								log && console.log("-> ",new Date().toLocaleString(),"RHEOS: PLAYING HEOS ZONE", player?.name)
 								clearTimeout(rheos.stop_timer)
 								services.svc_transport.control(zone,'play')
@@ -220,10 +218,10 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			if (rheos.mysettings.two_way){
-				console.log("-> ",new Date().toLocaleString(),"RHEOS: ERROR:",JSON.stringify(res))
+				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: ERROR:",JSON.stringify(res))
 				const op = rheos_players.get(res.heos.message.parsed.pid)?.output
 				const zone  = services.svc_transport.zone_by_output_id(rheos_players.get(res.heos.message.parsed.pid)?.output)
-				console.log("<- RHEOS: RETRYING ZONE PLAY",zone?.display_name);
+				log && console.log("<- RHEOS: RETRYING ZONE PLAY",zone?.display_name);
 				zone && setTimeout((zone)=> {services.svc_transport.control(zone,'play')},500,zone)
 			}
 		})
@@ -273,8 +271,8 @@ async function start_heos(counter = 0) {
 }
 async function get_device_info(ip){
 	if (!ip){return}
-	const response = await fetch('http://' + ip + ':60006/upnp/desc/aios_device/aios_device.xml').catch(err => console.log(err))
-	const body = await response.text().catch(err => console.log(err))
+	const response = await fetch('http://' + ip + ':60006/upnp/desc/aios_device/aios_device.xml').catch(err => console.error(err))
+	const body = await response.text().catch(err => console.error(err))
 	let re = new RegExp("<UDN>(.*?)</UDN?>")
 	const upn = body.search(re)
 	re = new RegExp("<lanMac>(.*?)</lanMac?>")
@@ -1253,6 +1251,7 @@ async function set_player_resolution(player){
 			<accept_nexturi>${rheos.mysettings.accept_nexturi}</accept_nexturi>
 			<next_delay>${rheos.mysettings.next_delay}</next_delay>
 			<keep_alive>${rheos.mysettings.keep_alive}</keep_alive>
+			<flow>${rheos.mysettings.flow}</flow>
 			<cache>${rheos.mysettings.cache}</cache>
 			<send_metadata>${rheos.mysettings.send_metadata}</send_metadata>
 			<send_coverart>${rheos.mysettings.send_coverart}</send_coverart>
