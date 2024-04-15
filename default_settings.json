@@ -14,7 +14,7 @@
         "next_delay": 15,
         "send_coverart": 0,
         "send_metadata": 1,
-        "flow": 0,
+        "flow": 1,
         "max_safe_vol": 70,
         "avr_control": 0,
         "fixed_control": 0,
