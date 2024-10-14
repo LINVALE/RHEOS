@@ -1,6 +1,6 @@
 {
   "name": "rheos",
-  "version": "0.10.1-7",
+  "version": "0.10.0-8",
   "main": "app.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
