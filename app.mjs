@@ -1,4 +1,4 @@
-const version = "0.10.0-9"
+const version = "0.10.1-0"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -327,8 +327,6 @@ async function set_players(players){
 	 		    await create_player(player).catch(()=>{console.error(new Date().toLocaleString(),"Failed to create player",player)})
 			}
 		}	
- 	
-	
 	}
 	if (added.length){
 	console.table(added, ["name", "pid", "model", "ip", "resolution","network","udn","mode"]) 
@@ -1334,8 +1332,6 @@ async function set_player_resolution(player){
 			device.send_coverart = "0"
 		}
 	}
-
-
 	let template = 	`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<squeeze2upnp>
 		<common>
@@ -1533,11 +1529,7 @@ async function connect_roon() {
 						}
 					}
 					break
-					case "NetworkError" : {
-						console.error(new Date().toLocaleString(),"RHEOS: ⚠ ERROR: OUTPUT NETWORK ERROR",cmd)
-						//exec("pkill -f -9 UPnP")
-						//exec("pkill -f -9 squeezelite")
-						start_up()
+					case "NetworkError" : {console.error(new Date().toLocaleString(),"RHEOS: ⚠ ERROR: OUTPUT NETWORK ERROR",cmd)
 					}
 					break
 					default: console.error(new Date().toLocaleString(),"RHEOS: ⚠ ERROR: UNKNOWN OUTPUT ERROR",cmd)	
@@ -1658,11 +1650,7 @@ async function update_position(zones){
 		const _player = [...rheos_players.values()].find(p=>(!p.gid || (p.gid == p.pid)) && p.zone == o.zone_id)
 		if (!o.zone_id || !_player?.zone ){continue} 
 		const player = rheos_players.get(_player.pid)
-		const zone = await update_zone(player.zone).catch(
-			()=>{console.log("ZONE NO LONGER FOUND")
-			//delete(player.zone)
-			}
-		)
+		const zone = await update_zone(player.zone)
 		if (!zone?.now_playing?.seek_position ){continue}
 		
 		if (player?.rheos  && player?.mode !== "FLOW" && player?.mode !== "OFF"){
@@ -1682,8 +1670,7 @@ async function update_position(zones){
 						log && console.log("-> ",new Date().toLocaleString(),"RHEOS: RELOAD NEXT SUCCESS",zone.display_name)
 					})
 				})
-				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: FORCING RELOAD",player.now_playing?.length,zone.now_playing?.seek_position, zone.is_seek_allowed )
-				
+				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: FORCING RELOAD",player.now_playing?.length,zone.now_playing?.seek_position, zone.is_seek_allowed )	
 			} else if (zone.state == 'playing'  ){
 				clearInterval(player.force_play)
 				player.position = zone.now_playing.seek_position
@@ -1732,7 +1719,7 @@ async function set_server(ip) {
 	} catch (err) {
 	  console.log(err);
 	}
-  }
+}
 async function get_all_groups(){
 	all_groups.clear()
 	for (const group of rheos_groups){
@@ -1760,11 +1747,7 @@ function force_play(zone,freq,pid){
 		setInterval(async (z)=>{
 			if (roon.paired){	
 				console.log("INTERVAL ",z.zone_id)
-				zone = await update_zone(z.zone_id).catch(
-					()=>{console.log("ZONE NO LONGER ABLE TO BE FORCED")
-					//delete(player.zone)
-					}
-				)
+				zone = await update_zone(z.zone_id)
 				const player = rheos_players.get(pid)
 				log && console.log("-> ",new Date().toLocaleString(),"RHEOS: ⚠ WARNING: FORCE PLAY TRIGGERED AS NO PROGRESS",zone?.display_name, freq,zone.now_playing?.three_line.line1,player.now_playing?.three_line.line1)
 				if (zone?.is_play_allowed ){
