@@ -1649,15 +1649,11 @@ async function update_position(zones){
 		const _player = [...rheos_players.values()].find(p=>(!p.gid || (p.gid == p.pid)) && p.zone == o.zone_id)
 		if (!o.zone_id || !_player?.zone ){continue} 
 		const player = rheos_players.get(_player.pid)
-<<<<<<< HEAD
-		const zone = await update_zone(player.zone)
-=======
 		
 		let zone = await update_zone(player.zone).catch(
 				()=>{console.log("ZONE NO LONGER FOUND")
 			}
 		)
->>>>>>> c7a2c1f (0.10.1-0)
 		if (!zone?.now_playing?.seek_position ){continue}
 		if (player?.rheos  && player?.mode !== "FLOW" && player?.mode !== "OFF"){
 			clearInterval(player.force_play)
@@ -1748,14 +1744,7 @@ function force_play(zone,freq,pid){
 	return(
 		setInterval(async (z)=>{
 			if (roon.paired){	
-<<<<<<< HEAD
-				console.log("INTERVAL ",z.zone_id)
 				zone = await update_zone(z.zone_id)
-=======
-				zone = await update_zone(z.zone_id).catch(
-					()=>{console.log("ZONE NO LONGER ABLE TO BE FORCED")}
-				)
->>>>>>> c7a2c1f (0.10.1-0)
 				const player = rheos_players.get(pid)
 				clearInterval(player.force_play)
 				log && console.warn("-> ",new Date().toLocaleString(),"RHEOS: ⚠ WARNING: FORCE PLAY TRIGGERED",zone?.display_name, freq,zone.now_playing?.three_line.line1,player.now_playing?.three_line.line1)
