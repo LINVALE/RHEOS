@@ -4,7 +4,7 @@ common.log
 *.log
 *.pid
 !config.xml
-node_modules/
+/node_modules
 UPnP/Profiles/*
 UPnP/server
 UPnP/uuid*
