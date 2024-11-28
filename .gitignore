@@ -8,3 +8,4 @@ common.log
 UPnP/Profiles/*
 UPnP/server
 UPnP/uuid*
+*copy.mjs
