@@ -1738,11 +1738,7 @@ async function update_status(message = "",warning = false){
 }
 async function set_server(ip) {
 	try {
-<<<<<<< HEAD
 	  console.log("<- ",get_date(),"RHEOS: SETTING SERVER: ",ip + ":9330")
-=======
-	  npconsole.log("<- ",get_date(),"RHEOS: SETTING SERVER: ",ip + ":9330")
->>>>>>> 383df9e (0.10.2-0)
 	  await fs.writeFile('./UPnP/server', ip + ":9330");
 	} catch (err) {
 	  console.log(err);
