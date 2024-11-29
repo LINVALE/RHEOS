@@ -3,6 +3,7 @@ USER root
 RUN usermod -a -G sudo node
 RUN usermod -a -G audio node
 RUN apt-get update && apt-get install -yq  --no-install-recommends squeezelite  && apt-get clean
+
 WORKDIR /home/node
 COPY . /home/node
 COPY package*.json ./
