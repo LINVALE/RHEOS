@@ -17,6 +17,7 @@
     "node-roon-api-transport": "github:roonlabs/node-roon-api-transport",
     "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control",
     "node-uuid": "^1.4.8",
+    "rheos": "^0.10.2-1",
     "telnet-client": "^2.0.8",
     "xml2js": "^0.6.0"
   },
