@@ -1,4 +1,4 @@
-const version = "0.10.2-1"
+const version = "0.10.2-2"
 "use-strict"
 import RoonApi from "node-roon-api"
 import RoonApiSettings from "node-roon-api-settings"
@@ -46,7 +46,7 @@ async function start_up(){
 		exec("pkill -f -9 UPnP")
         exec("pkill -f -9 squeezelite")
 	} catch{}
-	await start_roon().catch(err => console.error(get_date(),"⚠ Error Starting Roon",err => {throw error(err),reject()}))
+	await start_roon().catch(err => console.error(get_date(),"⚠ Error Starting Roon **********************************",err => {throw error(err),reject()}))
 	await start_heos().catch((err) => {console.error(get_date(),"⚠ Error Starting Heos",err);reject()})
 	await get_outputs(0,true)
 	console.table([...rheos_players.values()], ["name", "pid", "model", "ip", "resolution","network","udn","mode"]) 
@@ -95,35 +95,38 @@ async function add_listeners() {
 			const {pid} = res.heos.message.parsed
 				const player =  rheos_players.get(pid)
 				if (player){
-				if( !fixed_players.has(player?.pid) && (!player?.gid || player?.pid === player?.gid)){
+				if( !fixed_players.has(player?.pid) && player?.is_leader()){
 					console.log("-> ",get_date(),"RHEOS: EVENT     :",player?.name,res.heos.command.command,res.heos.message.parsed)
 					const {payload = {} } = await heos_command("player", "get_now_playing_media",{pid : pid})
-					const {mid = "",sid = ""} = payload
-					log && console.log("-> ",get_date(),"RHEOS: SOURCE    : ", mid ==='1' ? "RHEOS   :" : "NON-RHEOS :",player.name)
-					player.payload = payload
+					const {mid = "",sid = ""} = payload	
 					if (mid === '1'){
 						player.rheos = true
 					} else {
 						player.rheos = false
-						services.svc_transport.control(player.output,"stop")
+						player.output && process.nextTick(() => services.svc_transport.control(player.output,"stop"))
+                        clearInterval(player.force_play)
 					} 
-					setTimeout(async ()=>{await heos_command("player", "set_play_state",{pid : pid, state : "play"},1000,false)},1000)
+					log && console.log("-> ",get_date(),"RHEOS: SOURCE    :", mid ==='1' ? "PLAYING:" : "STOPPING:",player.name)
 				}	
 			}	
 		})
 		.on({ commandGroup: "event", command: "player_state_changed" }, async (res) => {
 			const {pid,state} = res.heos.message.parsed
-			log && console.log("-> ",get_date(),"RHEOS: EVENT:",JSON.stringify(res.heos.message.parsed))
+			log && console.log("-> ",get_date(),"RHEOS: EVENT     :",JSON.stringify(res.heos.message.parsed))
 			const player =  rheos_players.get(pid)
-			if (state == 'play')
-				if (!player.rheos){
-					services.svc_transport.control(player.output,"stop")	
-				} else {
-					services.svc_transport.control(player.output,"play")
-			} 
+			if (player && player?.is_leader()){
+				if (!player.rheos && state == 'play' ){
+					player.output && process.nextTick(() => services.svc_transport.control(player.output,"stop"))	
+					await delay (500)
+					await heos_command("player", "set_play_state",{pid : pid, state : "play"})
+				} 
+				else if (player.state == 'pause'){
+					clearInterval(player.force_play)	
+				}
+			}		
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
-			log && console.log("-> ",get_date(),"RHEOS: EVENT:",JSON.stringify(res.heos.message.parsed))
+			log && console.log("-> ",get_date(),"RHEOS: EVENT      :",JSON.stringify(res.heos.message.parsed))
 			const {pid,repeat} = res.heos.message.parsed
 			const zone = services.svc_transport.zone_by_output_id(rheos_players.get(pid)?.output) 
 			if (zone){
@@ -139,7 +142,7 @@ async function add_listeners() {
 			}
 		})	
 		.on({ commandGroup: "event", command: "shuffle_mode_changed" }, async (res) => {
-			log && console.log("-> ",get_date(),"RHEOS: EVENT:",JSON.stringify(res.heos.message.parsed))
+			log && console.log("-> ",get_date(),"RHEOS: EVENT       :",JSON.stringify(res.heos.message.parsed))
 			const {pid,shuffle} = res.heos.message.parsed
 			const zone = services.svc_transport.zone_by_output_id(rheos_players.get(pid)?.output) 
 			if (zone){
@@ -148,33 +151,33 @@ async function add_listeners() {
 		})
 		.on({ commandGroup: "event", command: "player_playback_error" }, async (res) => {
 			const {pid,error} = res.heos.message.parsed
-			console.error(error)
+			const player = rheos_players.get(pid)
+			console.error(player.name,error)
 		})
-		.on({ commandGroup: "event", command: "player_now_playing_progress" }, async (res) => {
-			
+		.on({ commandGroup: "event", command: "player_now_playing_progress" }, async (res) => {	
 			const {pid,cur_pos = 1000,duration} = res.heos.message.parsed
 			const player = rheos_players.get(pid)
-		    if (player?.pid && (!player.gid || (player?.pid == player?.gid))){
-				await update_heos_groups('true')
-				const {pid,gid,name} = player
-				const group = rheos_groups.get(gid)
+			const group = rheos_groups.get(player.pid)
+			if (player.is_leader() ){
+				clearInterval(player.force_play)
+				if (!group) (delete player.gid)
 				const length = player?.now_playing?.length || 1
 				let played  = Math.round((cur_pos/(length *1000))*20)
 				let remain = 21 - played 
 				if (remain > 0){
 					process.stdout.write("->  "+get_date()+" RHEOS: PROGRESS  : " + (group?.name || player.name)+ "  "+"▓".repeat((played))+("░".repeat(remain || 20))+" "+ (played *5) +"% 🎵 "+(player?.now_playing?.three_line?.line1 || "                                      ")+"\r")
-				}		
+				}
+				console.log("SETTING FORCE PLAY FOR",player.name,player?.is_leader())	
+				player.force_play = setInterval((pid)=>{force_play(pid,"PROGRESS",0)},10000,player.pid)		
 			}	
 		})
 		.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 			const { heos: { message: { parsed: { mute, level, pid } } } } = res, player = rheos_players.get(pid), output = rheos_outputs.get(player?.output)
-			if (output && roon.paired ){
-				//if (player?.rheos && level !== player.volume?.level) {
-				if (level !== player.volume?.level) {
-					console.log("PLAYER VOLUME CHANGED",)
+			if (output && roon.paired && player){
+				if (level !== player?.volume?.level) {
 				    services.svc_transport.change_volume(output, 'absolute', level)
 				}
-				if (mute !== player.volume.mute) {
+				if (mute !== player?.volume?.mute) {
 					services.svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))		
 				}
 			} 	
@@ -197,7 +200,7 @@ async function start_heos(counter = 0) {
 		}
 		rheos.connection[0].socket.setMaxListeners(32)
 		rheos.connection[1].socket.setMaxListeners(32)
-		rheos.myplayers = roon.load_config("players")
+		rheos.myplayers = roon.load_config("players")|| []
 		rheos.myplayers.map(o => rheos_players.set(o.pid,o))
 		const players = await compare_players().catch(async ()=>{console.error("⚠ ERROR GETTING PLAYERS",counter);counter++ ; await start_heos(counter)})
 		rheos.base_groups = await heos_command("group", "get_groups",10000,true).catch(err => console.error(get_date(),err))
@@ -215,13 +218,22 @@ async function start_heos(counter = 0) {
 }
 async function get_device_info(ip){
 	if (!ip){return}
+	try {
 	const response = await fetch('http://' + ip + ':60006/upnp/desc/aios_device/aios_device.xml').catch(err => console.error(err))
+    if (!response.ok) {
+		throw new Error(`Fetch failed: ${response.status}`);
+	  }
 	const body = await response.text().catch(err => console.error(err))
 	let re = new RegExp("<UDN>(.*?)</UDN?>")
 	const upn = body.search(re)
 	re = new RegExp("<lanMac>(.*?)</lanMac?>")
 	const mac = body.search(re)
 	return([body.slice(upn+5,upn+46),body.slice(mac+8,mac+25)])
+	}
+	catch(error) {
+
+		console.error('Error fetching data:', error);
+	}
 }
 async function compare_players(){
 	let players = await get_players().catch(() => {(console.error(get_date(),"Failed to create players - recomparing"));compare_players()})
@@ -286,10 +298,9 @@ async function set_players(players){
 			if (player.udn){
 				let res = await heos_command("player", "get_volume",{pid : player?.pid})
 				player.volume = {level : res.parsed.level}
-			
-				player.state = await read_player_status(player.pid)
 				added.push(player)	   
 			}
+		
 		 await create_player(player).catch(()=>{console.error(get_date(),"Failed to create player",player)})
 		}
 	}		 
@@ -340,13 +351,16 @@ async function get_players() {
 		})
 	})
 }
-async function read_player_status(pid){
-	const res = await heos_command("player", "get_play_state",{pid : pid},true)
-	const player = rheos_players.get(res?.parsed?.pid)
-	if (player){
-		player.state = res?.parsed?.state
-	} 
-	return(res?.parsed?.state)
+async function read_status(player){
+	let status = await Promise.all ([heos_command("player", "get_play_state",{pid : player.pid},5000,true),heos_command("player", "get_now_playing_media",{pid : player.pid},5000,true)])
+    const {sid ,mid ,song ,album ,artist} = status[1].payload || {}	
+	const {state} = status[0].parsed || "unknown"
+	player.rheos = (mid === '1' && sid =='1024')
+	player.state = state
+	if(player?.is_leader() && state == "play" && !player.rheos){
+		services.svc_transport.control(player.output,"stop")
+		await delay(1000)
+	}
 }
 async function create_player(player) {
 	log && console.log("-> ",get_date(),"RHEOS: CREATING  :",player.name)
@@ -360,7 +374,7 @@ async function create_player(player) {
 				console.warn("-> ",get_date(),"RHEOS: UNABLE TO DELETE")
 			}},50,p)
 	} 
-	await set_player_resolution(player).catch(err =>{console.log(err)})
+	await set_player_resolution(player).catch(err =>{console.log(err)})	
 	rheos.processes[player.pid] = spawn(
 		app,
 		['-b', rheos.system_info[0], 
@@ -498,7 +512,8 @@ async function start_roon() {
 	services.svc_transport = new RoonApiTransport(roon)
 	services.svc_source_control = new RoonApiSourceControl(roon)
 	services.svc_volume_control = new RoonApiVolumeControl(roon)
-	rheos.mysettings = roon.load_config("settings")//|| def.settings || {}
+	console.log("GETTING SETTINGS")
+	rheos.mysettings = roon.load_config("settings")|| def.settings || {}
 	rheos.mysettings.log_limit || (rheos.mysettings.log_limit = 1)
 	rheos.myplayers = roon.load_config("players") || []
 	rheos.mysettings.clear_settings = 0	
@@ -565,7 +580,7 @@ async function start_roon() {
 							rheos.mysettings[id] = player[play[2]]
 							await set_players([player],play[2].toUpperCase()).catch(()=>{console.error(get_date(),"Failed to create player",JSON.stringify(player))})
 							log && console.log("-> ",get_date(),"RHEOS: SET PLAYER",[play[2]],player.name,)
-						//	clearInterval(player.force_play)
+							clearInterval(player.force_play)
 							
 						}
 					}
@@ -574,7 +589,7 @@ async function start_roon() {
 							player.auto_play =  l.values["A"+String(pid)]
 							rheos.mysettings["A"+String(pid)] = player.auto_play
 							log && console.log("-> ",get_date(),"RHEOS: SET PLAYER AUTOPLAY",player.auto_play,player.name,)
-						//	clearInterval(player.force_play)
+							clearInterval(player.force_play)
 						}
 					}	
 				}
@@ -703,14 +718,9 @@ async function avr_dequeue(ip,res) {
 		res = await connection.write(req.item[1],{timeout : 400},(err,data)=>{err || (rheos.avr[ip] = false);connection.end()})
 		res = res.split(",").filter((str) => {return /\S/.test(str)})
 		res.push(req.item[0])
-		//log && console.log("<- ",get_date(),"AVR  : REQUEST   :",JSON.stringify(req.item))
-		if (req) {
-		//	log && console.log("-> ",get_date(),"AVR  : COMPLETE  :",(JSON.stringify(res,req)))
-		}
 		req && req.resolve(res)	
 	}
 	catch {
-		//log && console.error("-> ",get_date(),"AVR  : INCOMPLETE:",(JSON.stringify(req.item)))
 		req && req.resolve(res)
 	}
 	await avr_dequeue()	
@@ -738,7 +748,6 @@ async function create_zone_controls(err,count=0) {
 			i++
 		}
 		if (i == 11){console.error(get_date(),"⚠ FAILED TO SET AVR CONTROLS FOR ",failed_connections.map(p => p[1].name))}
-	//	roon.save_config("players",[...rheos_players.values()].filter(o=>o.output).map((o) => {let {gid,Z2,PWR,volume,output,zone,state,status,group,now_playing,position,duration,rheos,next, ...p} = o;return(p)})); 
 	} else {
 		console.error(get_date(),"⚠ UNABLE TO DISCOVER ANY HEOS PLAYERS - ABORTING")
 		process.exit(1)
@@ -773,7 +782,6 @@ async function update_avr_status(avr){
 				let index = 0
 				for await (let control of avrs){
 					const op = rheos_outputs.get(control[1].output?.output_id)
-						//log && console.log("-> ",get_date(),"AVR  : CONTROL",JSON.stringify(control))
 						if ((index === 0 && (status.has("ZMON") && status.has("SINET"))) || (index ===1 && (status.has("Z2ON") && status.has("Z2NET")) )) { 
 							if (!op && control[1].state.status !== "selected"){
 								control[1].state.status = "selected"
@@ -1019,127 +1027,108 @@ async function update_outputs(outputs,cmd){
 			log && console.log("-> ",get_date(),"RHEOS: ACTIVATED : OUTPUT  - ",op.display_name)
 		}
 		rheos_outputs.set(op.output_id,op)
-		//rheos.myplayers = [...rheos_players.values()].filter(o => o.output)	
 	}	
 	resolve()
 }).catch(err => console.error(get_date(),"⚠ ERROR UPDATING OUTPUTS",err))		
 }				
-async function update_zones(zones){
-return new Promise(async function (resolve) {
-	for await (const z of zones) {
-		let fixed = {}
-		let old_zone = rheos_zones.get(z.zone_id) 
-		let pending_index = -1
-		rheos_zones.set(z.zone_id,z)
-		if (z.outputs && z.outputs[0]?.source_controls  && ((z.outputs[0].source_controls[0].display_name.includes ("RHEOS") || 
-			z.outputs[0].source_controls[0].display_name.includes ("🔗")) || 
-			z.outputs[0].source_controls[0].display_name.includes ("​"))){
-			let player = [...rheos_players.values()].find ((o) => o.output === z.outputs[0].output_id )
-			fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
-			if (player?.rheos && player?.pid ){
-				//if (z.state !== old_zone?.state) 
-				player.state  = await read_player_status(player.pid)
-				player.position = z.now_playing?.seek_position || 1
-				player.zone = z.zone_id
-				if (player.state !== "play" && z.state == "playing" || z.state == "loading" && (!player.gid || (player.pid == player.gid))){
-					log && console.log("<- ",get_date(),"RHEOS: UPDATING  : NOW PLAYING   -",z.outputs?.[0].source_controls[0].display_name,z.state,z.now_playing?.seek_position)			
-					
-					//const {payload = {} } = await heos_command("player", "get_now_playing_media",{pid : player.pid});
-					//const {sid ,mid ,song ,album ,artist} = payload || {}	
-					//if (mid=='1') {
-						console.log("PLAY RHEOS",player.name)
-						await heos_command("player", "set_play_state",{pid : player.pid, state : "play"})
-					//}
-					//clearInterval(player?.force_play)
-					//player.force_play = setInterval((pid)=>{force_play(pid,"ART",0)},10000,player.pid)
-				}
-				if (player.state == "play" && z.state == "paused"){
-					if (player){
-						log && console.log("<- ",get_date(),"RHEOS: STOPPING  :", player.gid ? "GROUP" : "PLAYER",player.name,player.mode,player.state,z.now_playing?.three_line.line1)	
-						rheos_zones.set(z.zone_id,z)
-						if (player.gid){
-							const res = await heos_command("group", "get_groups",10000,true).catch(err => console.error(get_date(),err))
-							const group = res.payload.find(o => o.gid == player.gid)
-							for (let p of group.players){
-								let _player = rheos_players.get(p.pid)
-								//clearInterval(_player?.force_play)
-								//heos_command("player", "set_play_state",{pid : _player.pid, state : "pause"})
-							}
-						} else {
-							//clearInterval(player?.force_play)
-							heos_command("player", "set_play_state",{pid : player.pid, state : "pause"})
+async function update_zones(zones){	
+	return new Promise(async function (resolve) {
+		for await (const z of zones) {
+			let fixed = {}
+			let old_zone = rheos_zones.get(z.zone_id) 
+			let pending_index = -1
+			rheos_zones.set(z.zone_id,z)
+			if (z.outputs){
+				let player = [...rheos_players.values()].find ((o) => o.output === z.outputs[0].output_id)
+				if (player?.is_leader()){
+					await(read_status(player))  
+					if (player?.rheos){ 
+						player.position = z.now_playing?.seek_position || 1
+						player.zone = z.zone_id
+						if (player.state !== "play" && z.state == "playing"){
+							log && console.log("<- ",get_date(),"RHEOS: UPDATING  : NOW PLAYING   -",z.outputs?.[0].source_controls[0].display_name,z.state,z.now_playing?.seek_position)			
+							await delay(500)	
+							await heos_command("player", "set_play_state",{pid : player.pid, state : "play"})
 						}
-					}
-				}
-			}
-			pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
-			if (rheos.mysettings.fixed_control){	
-				if (fixed?.gid ){ 
-					const index = group_pending.findIndex(z => z.group.gid === fixed.gid)
-					if (z.outputs.length == 1 && index == -1 && z.state == "playing"){
-							log && console.log("-> ",get_date(),"RHEOS: SETTING   : FIXED GROUP",JSON.stringify(fixed?.name))
-							const max_vol = await set_fixed_group(fixed.players)
-							services.svc_transport.change_volume( z.outputs[0],'absolute',max_vol,  
-							services.svc_transport.transfer_zone( z,services.svc_transport.zone_by_output_id(rheos_players.get(fixed.gid)?.output)))        
-							group_pending.push({zone : z , group : fixed, status : "transferring"})	
-					}
-					else if ( index == -1 && (z.state == "paused"  ) && z.outputs.length === fixed.players.length + 1) {
-						log && console.log("-> ",get_date(),"RHEOS: CLEARING  : FIXED GROUP",JSON.stringify(fixed?.name))
-						const op = rheos_outputs.get(z.outputs[0].output_id)
-						if (op){
-							services.svc_transport.ungroup_outputs(z.outputs)
-							fixed.players.forEach(p => fixed_players.delete(p.pid))	
-						}
-					else if (index >-1 && (z.state == "playing"  ) && z.outputs.length === fixed.players.length + 1){
-							group_pending.splice(index,1)
-						}
-					} 
-				} 
-				if (pending_index >-1){
-					let pending = group_pending[pending_index]
-					if (pending?.status == "transferring"){
-						log && console.log("<- ",get_date(),"RHEOS: TRANSFER  : FIXED GROUP",JSON.stringify(pending.zone.display_name))
-						let zone_outputs = pending.group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
-						zone_outputs.push(pending.zone.outputs[0])
-						zone_outputs = zone_outputs.filter(Boolean)
-						pending.status="grouping" 
-						log && console.log("<- ",get_date(),"RHEOS: GROUPING  : FIXED GROUP",JSON.stringify(zone_outputs.map(o => o.display_name)))
-						services.svc_transport.group_outputs(zone_outputs)
-					} 
-				}
-			}
-			const index = z.outputs.findIndex(o => o.source_controls[0].status == "standby")				
-			if (index>-1 ){	
-				if (Array.isArray(player?.PWR)&& !z.outputs[index]?.source_controls[0]?.display_name?.includes("​")){
-					rheos.block_avr_update = true
-					player.PWR = await control_avr(player?.ip,"PW?")
-					if (Array.isArray(player.PWR) && player.PWR.includes("PWSTANDBY")){
-						await control_avr(player.ip,"PWON")
-						if (Number(player.auto_play )> -1){
-							setTimeout(async (output)=> {	
-								await control_zone(services.svc_transport.zone_by_output_id(output),"play")
-							},player.auto_play*1000,z.outputs[index].output_id)
-						} 
-					} else {
-						await control_avr(player.ip,"PWSTANDBY")
-					}
-					rheos.block_avr_update = false
-				} else if (rheos.mysettings.avr_control && z.outputs[index].source_controls[0]?.display_name.includes("​")){
-					rheos.block_avr_update = true
-					log && console.log("-> ",get_date(),"AVR  : STANDBY ZONE",z.outputs[index].source_controls[0]?.display_name)
-					services.svc_transport.ungroup_outputs([z.outputs[index]]);
-					const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == get_output_name(z.outputs[index])	)	
-					if (control){
-						let {state : {pid,ip,index}} = control[1]	
-						let avr_status = rheos_players.get(pid).status
-						if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
-							await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
+						if (z.state == "paused"){
+								log && console.log("<- ",get_date(),"RHEOS: STOPPING  :", player.gid ? "GROUP" : "PLAYER",player.name,player.mode,player.state,z.now_playing?.three_line.line1)	
+								rheos_zones.set(z.zone_id,z)
+								await heos_command("player", "set_play_state",{pid : player.pid, state : "stop"})
+								clearInterval(player.force_play)
 						}
 					}	
-					rheos.block_avr_update = false	
-				}	
-			} 
-			if ( rheos.mysettings.avr_control && z.outputs.length == 1 && (z.outputs[0].source_controls[0].display_name).includes("​")){
+				} else {
+					console.log("NON RHEOS ZONE",z.display_name)
+				}
+				pending_index  = group_pending.findIndex(g => g.group.players.find(p => p.role == "leader")?.name == get_output_name(z.outputs[0])) 
+				if (rheos.mysettings.fixed_control){
+					fixed = ([...fixed_groups.values()].find(group => z.outputs.find(o => o.source_controls[0].display_name.includes ("🔗"))?.source_controls[0].display_name == group.display_name)) 
+					if (fixed?.gid ){ 
+						const index = group_pending.findIndex(z => z.group.gid === fixed.gid)
+						if (z.outputs.length == 1 && index == -1 && z.state == "playing"){
+								log && console.log("-> ",get_date(),"RHEOS: SETTING   : FIXED GROUP",JSON.stringify(fixed?.name))
+								const max_vol = await set_fixed_group(fixed.players)
+								services.svc_transport.change_volume( z.outputs[0],'absolute',max_vol,  
+								services.svc_transport.transfer_zone( z,services.svc_transport.zone_by_output_id(rheos_players.get(fixed.gid)?.output)))        
+								group_pending.push({zone : z , group : fixed, status : "transferring"})	
+						}
+						else if ( index == -1 && (z.state == "paused"  ) && z.outputs.length === fixed.players.length + 1) {
+							log && console.log("-> ",get_date(),"RHEOS: CLEARING  : FIXED GROUP",JSON.stringify(fixed?.name))
+							const op = rheos_outputs.get(z.outputs[0].output_id)
+							if (op){
+								services.svc_transport.ungroup_outputs(z.outputs)
+								fixed.players.forEach(p => fixed_players.delete(p.pid))	
+							}
+						else if (index >-1 && (z.state == "playing"  ) && z.outputs.length === fixed.players.length + 1){
+								group_pending.splice(index,1)
+							}
+						} 
+					} 
+					if (pending_index >-1){
+						let pending = group_pending[pending_index]
+						if (pending?.status == "transferring"){
+							log && console.log("<- ",get_date(),"RHEOS: TRANSFER  : FIXED GROUP",JSON.stringify(pending.zone.display_name))
+							let zone_outputs = pending.group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} ).map(player => rheos_outputs.get(rheos_players.get(player.pid)?.output))
+							zone_outputs.push(pending.zone.outputs[0])
+							zone_outputs = zone_outputs.filter(Boolean)
+							pending.status="grouping" 
+							log && console.log("<- ",get_date(),"RHEOS: GROUPING  : FIXED GROUP",JSON.stringify(zone_outputs.map(o => o.display_name)))
+							services.svc_transport.group_outputs(zone_outputs)
+						} 
+					}
+				}
+				const index = z.outputs.findIndex(o => o.source_controls[0].status == "standby")				
+				if (index>-1 ){	
+					if (Array.isArray(player?.PWR)&& !z.outputs[index]?.source_controls[0]?.display_name?.includes("​")){
+						rheos.block_avr_update = true
+						player.PWR = await control_avr(player?.ip,"PW?")
+						if (Array.isArray(player.PWR) && player.PWR.includes("PWSTANDBY")){
+							await control_avr(player.ip,"PWON")
+							if (Number(player.auto_play )> -1){
+								setTimeout(async (output)=> {	
+									await control_zone(services.svc_transport.zone_by_output_id(output),"play")
+								},player.auto_play*1000,z.outputs[index].output_id)
+							} 
+						} else {
+							await control_avr(player.ip,"PWSTANDBY")
+						}
+						rheos.block_avr_update = false
+					} else if (rheos.mysettings.avr_control && z.outputs[index].source_controls[0]?.display_name.includes("​")){
+						rheos.block_avr_update = true
+						log && console.log("-> ",get_date(),"AVR  : STANDBY ZONE",z.outputs[index].source_controls[0]?.display_name)
+						services.svc_transport.ungroup_outputs([z.outputs[index]]);
+						const control  = Object.entries(avr_zone_controls).find(o=> o[1].state.display_name == get_output_name(z.outputs[index])	)	
+						if (control){
+							let {state : {pid,ip,index}} = control[1]	
+							let avr_status = rheos_players.get(pid).status
+							if (index == 1 && avr_status.findIndex(o => o == "SINET")>-1 || index == 2 &&  avr_status.findIndex(o => o == "Z2NET")>-1 ){
+								await control_avr(ip,index == 1 ? "ZMOFF" : "Z2OFF")
+							}
+						}	
+						rheos.block_avr_update = false	
+					}	
+				} 
+				if ( rheos.mysettings.avr_control && z.outputs.length == 1 && (z.outputs[0].source_controls[0].display_name).includes("​")){
 					const control  = Object.values(avr_zone_controls).find(o => o.state.display_name == get_output_name(z.outputs[0]))
 					if (control){
 						rheos.block_avr_update = true
@@ -1157,30 +1146,29 @@ return new Promise(async function (resolve) {
 						rheos.block_avr_update = false
 					}
 				} 
-			if (z.outputs.length > 1 && z.outputs.length !== old_zone?.outputs.length && !rheos.base_groups){
-				const group = (rheos_groups.get(get_pid(get_output_name(z.outputs[0]))))
-				const old_roon_group = old_zone?.outputs?.map(output => {get_pid(get_output_name(output))})
-				const new_roon_group = [...new Set(z.outputs.map(output => get_pid(get_output_name(output))).filter(o => o))]
-				const heos_group = group?.players.map(player => player.pid);
-				if (new_roon_group.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
-					await group_enqueue(new_roon_group)	
+				if (z.outputs.length > 1 && z.outputs.length !== old_zone?.outputs.length && !rheos.base_groups){
+					const group = (rheos_groups.get(get_pid(get_output_name(z.outputs[0]))))
+					const old_roon_group = old_zone?.outputs?.map(output => {get_pid(get_output_name(output))})
+					const new_roon_group = [...new Set(z.outputs.map(output => get_pid(get_output_name(output))).filter(o => o))]
+					const heos_group = group?.players.map(player => player.pid);
+					if (new_roon_group.length > 1 && (sum_array(old_roon_group) !== sum_array(new_roon_group))  && (sum_array(new_roon_group) !== sum_array(heos_group))){
+						await group_enqueue(new_roon_group)	
+					}
+					z.group = group 
 				}
-				z.group = group 
-			}
-		} 
-		else { 	
-			const zone =(rheos_zones.get(z))
-			if (zone?.outputs.filter(op => op && get_pid(get_output_name(op))).length >1){
-				const lead_player_pid = get_pid(get_output_name(zone.outputs[0]))
-				const group = (rheos_groups.get(lead_player_pid))
-				if (group?.gid) {
-					await group_enqueue(lead_player_pid)
-				}
-			} 
-			rheos_zones.delete(zone?.zone_id || z)	
-		}	
+			} else { 	
+				const zone =(rheos_zones.get(z))
+				if (zone?.outputs.filter(op => op && get_pid(get_output_name(op))).length >1){
+					const lead_player_pid = get_pid(get_output_name(zone.outputs[0]))
+					const group = (rheos_groups.get(lead_player_pid))
+					if (group?.gid) {
+						await group_enqueue(lead_player_pid)
+					}
+				} 
+				rheos_zones.delete(zone?.zone_id || z)	
+			}	
 		}
-		resolve()
+	resolve()
 	}).catch(err => console.error("-> ",get_date(),"RHEOS: ⚠ ERROR UPDATING ZONES",err))	
 }
 async function write_meta(player,why){
@@ -1412,7 +1400,7 @@ async function set_player_resolution(player){
 		saved_player.resolution = player.resolution
 		saved_player.mode = player.mode
 	}
-	rheos_players.set(player.pid,player)
+	player.is_leader = function(){return Boolean(!this.gid || this.pid === this.gid)}
 	roon.save_config("players",[...rheos_players.values()].map((o) => {let {gid,Z2,PWR,volume,zone,state,status,group,now_playing,position,duration,rheos,next, ...p} = o;return(p)}));
 }
 async function start_listening() {
@@ -1492,14 +1480,12 @@ async function update_heos_groups(hidden) {
 	return new Promise(async function (resolve) {
 		let old_groups = new Array()
 		if (rheos_groups.size){
-		old_groups = [...rheos_groups.keys()]
-		rheos_groups.clear()
-		for (let p of rheos_players){
-			delete(p[1].gid)
-			//clearInterval(p[1].force_play)
+			old_groups = [...rheos_groups.keys()]
+			rheos_groups.clear()
+			for (let p of rheos_players){
+				delete(p[1].gid)
+			}
 		}
-		}
-		
 		const res = await heos_command("group", "get_groups",10000,true).catch(err => console.error(get_date(),err))
 		if (res?.payload?.length) {
 			for (const group of res.payload) {
@@ -1545,7 +1531,6 @@ async function connect_roon() {
 				rheos.mysettings.host_ip =  roon.paired_core?.moo?.transport?.host  
 				await set_server(rheos.mysettings.host_ip )	
 				await start_listening().catch((err) => {console.error(get_date(),"⚠ Error Starting Listeners",err);reject()})
-				//await update_heos_groups().catch((err) => {console.error(get_date(),"⚠ Error Starting Heos",err)})
 				rheos.listeners || 	add_listeners().catch(err => console.error(get_date(),"⚠ Error Adding Listeners",err => {console.error(rheos.connection),reject()}))
 				services.svc_transport = core.services.RoonApiTransport
 				services.svc_transport.subscribe_outputs(async function (cmd, data) {		
@@ -1591,7 +1576,6 @@ async function connect_roon() {
 									services.svc_transport.subscribe_queue(z,null,(cmd,data)=>update_queue(cmd,data,z))	
 									
 								}
-								
 							}	
 							Array.isArray(data.zones_added) && update_zones(data.zones_added,true);	
 						break		
@@ -1601,7 +1585,6 @@ async function connect_roon() {
 									if (z.outputs[0].source_controls[0].display_name.includes ("RHEOS")){
 										get_player_by_name(get_output_name(z.outputs[0])) &&	rheos_zones.set(z.zone_id, z)  	
 										services.svc_transport.subscribe_queue(z,null,(cmd,data)=>update_queue(cmd,data,z))
-									
 									} 			
 								}	
 								Array.isArray(data.zones_added) && update_zones(data.zones_added,true);
@@ -1654,7 +1637,7 @@ async function connect_roon() {
 async function update_queue(cmd,data,zone){
 	if (zone && cmd == "Subscribed"){
 		const player = [...rheos_players.values()].find((p)=>{return ((p.pid && (!p.gid || (p.gid == p.pid))) && ((zone.outputs.findIndex(o => o.output_id == p.output) >-1)))})
-		if(player?.rheos && player.mode !== "OFF"){	
+		if( player && player.mode !== "OFF"){	
 			zone = await(update_zone(zone?.zone_id)).catch(	()=>{console.log("ZONE NOT FOUND")}	)
 			if (zone.now_playing && !zone.now_playing?.seek_position){		
 				log && console.log("-> ",get_date(),"RHEOS: SUBSCRIBED: TRACK CHANGED -",zone?.display_name,zone.state,player.mode,data.items.length,zone.now_playing?.seek_position,zone.is_seek_allowed,zone.now_playing?.one_line.line1)	
@@ -1755,7 +1738,7 @@ async function force_play(pid,where,count){
 	count++
 	if (roon.paired){	
 		let player = rheos_players.get(pid)
-		if (! player.pid){
+		if (!player.pid){
             console.log("PLAYER NOT FOUND ",where,pid)
 			const players = await get_players().catch(async ()=>{console.error("⚠ ERROR GETTING PLAYERS",counter);counter++ ; await start_heos(counter)})
 			set_players(players)
@@ -1767,44 +1750,25 @@ async function force_play(pid,where,count){
 		player.zone = zone
 		if (zone){
 			log && console.log("-> ",get_date(),"RHEOS: ⚠ WARNING : FORCE PLAY TRIGGERED",where,zone?.display_name,zone?.now_playing?.three_line.line1,player?.now_playing?.three_line.line1)
-/** 
+
 			if (zone?.is_play_allowed){
 				let err = await control_zone(zone.zone_id,"play")
 					if (err ){
 						console.error(get_date(),"RHEOS: ⚠ ERROR   : UNABLE TO FORCE PLAY",err)
 					} else {
 						log && console.log("-> ",get_date(),"RHEOS: SUCCESS    : FORCED PLAY",player.position,zone.now_playing?.seek_position)
-						await (heos_command("player", "set_play_state",{pid : player.pid, state : "play"}))
 					}
 					
-			} else 
-
-*/
-
-			if (zone?.is_seek_allowed ){	
+			} else 	if (zone?.is_seek_allowed ){	
 				services.svc_transport.seek(zone,(zone.seek_position === null ? 'absolute' : 'relative') ,1, async (err)=> { 
 				if (err){
 						console.error(get_date(),"RHEOS: ⚠ ERROR: UNABLE TO FORCE SEEK ",err)
 						await set_players([player],"SEEK FAIL").catch(()=>{console.error(get_date(),"Failed to create player")})
 					} else {
 						log && console.log("-> ",get_date(),"RHEOS: SUCCESS   : FORCED SEEK ",zone.now_playing?.seek_position,zone.now_playing?.one_line.line1) 
-						zone = await update_zone(player?.zone).catch(() => {log && console.error("-> ",get_date(),"RHEOS: ERROR    : ZONE NOT AVAILABLE TO FORCE SEEK")})
-						
 
-						await (heos_command("player", "set_play_state",{pid : player.pid, state : "play"}))
 					}	
 				})
-			} else if (zone?.is_next_allowed  ) {
-				let err = await control_zone(zone.zone_id,"next")
-				if (err ){
-					console.error(get_date(),"RHEOS: ⚠ ERROR   : UNABLE TO FORCE PLAY",err)
-				} else {
-					log && console.log("-> ",get_date(),"RHEOS: SUCCESS    : FORCED PLAY",player.position,zone.now_playing?.seek_position)
-					await (heos_command("player", "set_play_state",{pid : player.pid, state : "play"}))
-				}
-			} else{
-				log && console.log("-> ",get_date(),"RHEOS: SUCCESS    : FORCED PLAY",player.position,zone.now_playing?.seek_position)
-					await (heos_command("player", "set_play_state",{pid : player.pid, state : "play"}))
 			}
 		} else {
 			console.log("ZONE NOT FOUND TO FORCE",player,where)
@@ -1812,6 +1776,7 @@ async function force_play(pid,where,count){
 	}	
 } 	
 async function get_outputs(counter = 0,regroup = false){
+	try{
 	let outputs = []
 	services.svc_transport.get_outputs(async (err,ops)=> {
 		if(!ops.outputs.length){
@@ -1828,7 +1793,6 @@ async function get_outputs(counter = 0,regroup = false){
 						ready = outputs.filter((o)=> Array.isArray(o.source_controls) && o.source_controls[0].display_name.includes("RHEOS"))
 						ready = ready.filter (o =>o)
 					} 
-					
 					for (const op of ready){
 						let player = [...rheos_players.values()].find(p => p.name.trim().toLowerCase() === get_output_name(op).trim().toLowerCase())
 						if (player){
@@ -1844,11 +1808,17 @@ async function get_outputs(counter = 0,regroup = false){
 						for await (const group of rheos.base_groups.payload){
 							const players =	group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb} )
 							let outputs = players.map(p => rheos_players.get(p.pid).output).filter (o=>o)
+							rheos.connection[1]
+							.on({ commandGroup: "event", command: "groups_changed" }, async (res) => {
+								log && console.log("-> ",get_date(),"RHEOS: EVENT     :",JSON.stringify(res))
+							})
 							services.svc_transport.group_outputs(outputs)
-						}
+						}	
+					
 					}
-				
 					delete (rheos.base_groups)
+					await delay(10000)
+					await update_heos_groups().catch(err => console.error(get_date(),"⚠ Error Updating HEOS Groups",err))
 					return
 				} else {
 					await delay(1000)
@@ -1857,6 +1827,10 @@ async function get_outputs(counter = 0,regroup = false){
 			})
 		}
 	})
+} catch {
+	services.svc_status.set_status("DISCOVERING PLAYERS AND SETTING GROUPS",true)
+	return []
+}
 }
 function makelayout(settings) {
 	const players = [...rheos_players.values()].filter(o => o.output),
