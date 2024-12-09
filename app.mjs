@@ -47,6 +47,8 @@ async function start_up(){
 		exec("pkill -f -9 UPnP")
         exec("pkill -f -9 squeezelite")
 	} catch{}
+
+	//isRunning('myprocess.exe', 'myprocess', 'myprocess').then((v) => console.log("IS RUNNING",v))
 	await start_roon().catch(err => console.error(get_date(),"⚠ Error Starting Roon **********************************",err => {throw error(err),reject()}))
 	await start_heos().catch((err) => {console.error(get_date(),"⚠ Error Starting Heos",err);reject()})
 	await get_outputs(0,true)
@@ -99,27 +101,23 @@ async function add_listeners() {
 					console.log("-> ",get_date(),"RHEOS: EVENT     :",player?.name,res.heos.command.command,res.heos.message.parsed)
 					const {payload = {} } = await heos_command("player", "get_now_playing_media",{pid : pid})
 					const {mid = "",sid = ""} = payload	
-					if (mid === '1'){
+					if (mid == '1'){
 						player.rheos = true	
 					} else {
+						process.nextTick(() => services.svc_transport.control(player?.output,"stop"))    
 						player.rheos = false
-						player.output && process.nextTick(() => services.svc_transport.control(player.output,"stop"))    
 					} 
-					log && console.log("-> ",get_date(),"RHEOS: SOURCE    :", mid ==='1' ? "IS RHEOS:" : "NON RHEOS:",player.name)
+					log && console.log("-> ",get_date(),"RHEOS: SOURCE    :", mid =='1' ? "IS RHEOS:" : "NON RHEOS:",player.name)
 				}	
 		})
 		.on({ commandGroup: "event", command: "player_state_changed" }, async (res) => {
 			const {pid,state} = res.heos.message.parsed
+			const {payload = {} } = await heos_command("player", "get_now_playing_media",{pid : pid})
+			const {mid = ""} = payload	
 			const player =  rheos_players.get(pid)
+			mid == '1' ?player.rheos = true	: player.rheos = false   
 			if (player?.is_leader()){
-				log && console.log("-> ",get_date(),"RHEOS: EVENT     :",JSON.stringify(res.heos.message.parsed))	
-				if (!player.rheos && state == 'play' ){
-					clearInterval(player.pid)
-					player.output && process.nextTick(() => services.svc_transport.control(player.output,"stop"))	
-					await delay (500)
-					await heos_command("player", "set_play_state",{pid : pid, state : "play"})
-					player.force_play = setTimeout((pid)=>{force_play(pid,"PLAYER STATE CHANGED",0)},10000,player.pid)
-				} 
+				log && console.log("-> ",get_date(),"RHEOS: STATE     :",player.name,JSON.stringify(res.heos.message.parsed))
 			}		
 		})
 		.on({ commandGroup: "event", command: "repeat_mode_changed" }, async (res) => {
@@ -154,6 +152,8 @@ async function add_listeners() {
 		.on({ commandGroup: "event", command: "player_now_playing_progress" }, async (res) => {	
 			const {pid,cur_pos = 1000,duration} = res.heos.message.parsed
 			const player = rheos_players.get(pid)
+			clearInterval(player?.force_play)
+			player.force_play = setTimeout((pid)=>{force_play(pid,"PLAYBACK PROGRESS",0)},15000,player.pid)
 			/** 
 			if (player?.is_leader()){
 				const group = rheos_groups.get(player.pid)
@@ -265,7 +265,7 @@ async function reboot_heos_server(){
 	console.log("REBOOTING SYSTEM",res)	
 }
 async function delete_players(players){
-	isRunning('myprocess.exe', 'myprocess', 'myprocess').then((v) => console.log("IS RUNNING",v))
+//	isRunning('myprocess.exe', 'myprocess', 'myprocess').then((v) => console.log("IS RUNNING",v))
 	if (!Array.isArray(players)){return}
 	const removed = []
 	for (const pid of players){
@@ -309,7 +309,7 @@ async function set_players(players){
 			if (rheos.myplayers.findIndex(p => p.pid == player.pid) == -1 ){
 				rheos.myplayers.push(player)
 			}
-			if (player.udn){
+			if (player?.pid){
 				let res = await heos_command("player", "get_volume",{pid : player?.pid})
 				player.volume = {level : res.parsed.level}
 				added.push(player)	   
@@ -395,7 +395,7 @@ async function create_player(player) {
 		'-Z',
 		'-M', player.name + " (RHEOS: "+player.model+")",
 		'-x', './UPnP/Profiles/' + player.name + '.xml',
-		'-f', './UPnP/Profiles/' + player.name + '.log',
+		//'-f', './UPnP/Profiles/' + player.name + '.log',
 		'-d','all=info',
 		'-s',rheos.mysettings.host_ip || null,
 		'-k'	
@@ -1665,7 +1665,7 @@ async function update_queue(cmd,data,zone){
 async function update_position(zones){
 	for await (const o of zones){	 
         const zone = services.svc_transport.zone_by_zone_id(o.zone_id)
-		const player = [...rheos_players.values()].find((p)=>(p.is_leader() && zone.outputs.find(o => o.output_id == p.output )))
+		const player = [...rheos_players.values()].find((p)=>(p?.is_leader() && zone.outputs.find(o => o.output_id == p.output )))
 		player && clearInterval(player.pid)
 		if (player?.is_leader() && zone.now_playing?.seek_position >2 && player.now_playing?.three_line?.line1 == zone.now_playing?.three_line?.line1  && (Math.abs(zone.now_playing?.seek_position - player.position) > 5)){	
 			log && console.log("-> ",get_date(),"RHEOS: JUMPING   :",player.name,"FROM",player.position,"TO",zone.now_playing.seek_position)
@@ -1706,7 +1706,7 @@ async function update_status(message = "",warning = false){
 async function set_server(ip) {
 	try {
 	  console.log("<- ",get_date(),"RHEOS: SETTING SERVER: ",ip + ":9330")
-	  await fs.writeFile('./UPnP/server', ip + ":9330");
+	  await fs.writeFile('./UPnP/Profiles/server', ip + ":9330");
 	} catch (err) {
 	  console.log(err);
 	}
@@ -1758,7 +1758,6 @@ async function force_play(pid,where,count){
 			let zone = services.svc_transport.zone_by_output_id(player?.output) 
 			player.zone = zone
 			if (zone){
-				log && console.warn("-> ",get_date(),"RHEOS: WARNING ⚠ : FORCE PLAY TRIGGERED",where,zone.now_playing?.seek_position,zone?.display_name,zone?.now_playing?.three_line.line1,player?.now_playing?.three_line.line1)
 				if (zone?.is_play_allowed){
 					let err = await control_zone(zone,"play")
 						if (err !== 'play' ){
@@ -1767,7 +1766,6 @@ async function force_play(pid,where,count){
 				} else {
 					const status = await  heos_command("player", "get_play_state",{pid : player.pid},10000,true)
 					const {state} = status?.parsed   
-					console.log("STATE OF FORCED PLAYER",player.name, "IS",state) 
 					if (state !== "play"){
 						await heos_command("player", "set_play_state",{pid : pid, state : "play"})
 					}		
@@ -2058,6 +2056,7 @@ function get_date(){
 function isRunning(win, mac, linux){
     return new Promise(function(resolve, reject){
         const plat = process.platform
+		console.log(" ***************************** PLATFORM IS",plat)
         const cmd = plat == 'win32' ? 'tasklist' : (plat == 'darwin' ? 'ps -ax | grep ' + mac : (plat == 'linux' ? 'ps -A' : ''))
         const proc = plat == 'win32' ? win : (plat == 'darwin' ? mac : (plat == 'linux' ? linux : ''))
         if(cmd === '' || proc === ''){
