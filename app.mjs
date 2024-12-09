@@ -1754,34 +1754,35 @@ async function control_zone(zone_id,control){
 async function force_play(pid,where,count){
 	count++
 	if (roon.paired && pid){	
-		let player = rheos_players.get(pid)
-		if (!player?.pid){
-            console.log("PLAYER NOT FOUND ",where,pid)
-			const players = await get_players().catch(async ()=>{console.error("⚠ ERROR GETTING PLAYERS",counter);counter++ ; await start_heos(counter)})
-			set_players(players)
-			await set_players(players,"FORCE FAIL")
-			player = rheos_players.get(pid)
-			return
-		}	
-		let zone = services.svc_transport.zone_by_output_id(player?.output) 
-		player.zone = zone
-		
-		if (zone){
-			log && console.warn("-> ",get_date(),"RHEOS: WARNING ⚠ : FORCE PLAY TRIGGERED",where,zone.now_playing?.seek_position,zone?.display_name,zone?.now_playing?.three_line.line1,player?.now_playing?.three_line.line1)
-			
-			if (zone?.is_play_allowed){
-				let err = await control_zone(zone,"play")
-					if (err !== 'play' ){
-						console.warn("-> ",get_date(),"RHEOS: WARNING ⚠ : UNABLE TO FORCE ZONE PLAY",err)
-					} 
-						
-			} else {
-				const status = await  heos_command("player", "get_play_state",{pid : player.pid},10000,true)
-				const {state} = status?.parsed   
-				console.log("STATE OF FORCED PLAYER",player.name, "IS",state) 
-				if (state !== "play"){
-					await heos_command("player", "set_play_state",{pid : pid, state : "play"})
-				}		
+		let player = rheos_players.get(pid)	
+		if (!player.is_leader()){
+			player && clearInterval(player.force_play)
+			if (!player?.pid){
+				console.log("PLAYER NOT FOUND ",where,pid)
+				const players = await get_players().catch(async ()=>{console.error("⚠ ERROR GETTING PLAYERS",counter);counter++ ; await start_heos(counter)})
+				set_players(players)
+				await set_players(players,"FORCE FAIL")
+				player = rheos_players.get(pid)
+				
+			}
+		} else {
+			let zone = services.svc_transport.zone_by_output_id(player?.output) 
+			player.zone = zone
+			if (zone){
+				log && console.warn("-> ",get_date(),"RHEOS: WARNING ⚠ : FORCE PLAY TRIGGERED",where,zone.now_playing?.seek_position,zone?.display_name,zone?.now_playing?.three_line.line1,player?.now_playing?.three_line.line1)
+				if (zone?.is_play_allowed){
+					let err = await control_zone(zone,"play")
+						if (err !== 'play' ){
+							console.warn("-> ",get_date(),"RHEOS: WARNING ⚠ : UNABLE TO FORCE ZONE PLAY",err)
+						} 							
+				} else {
+					const status = await  heos_command("player", "get_play_state",{pid : player.pid},10000,true)
+					const {state} = status?.parsed   
+					console.log("STATE OF FORCED PLAYER",player.name, "IS",state) 
+					if (state !== "play"){
+						await heos_command("player", "set_play_state",{pid : pid, state : "play"})
+					}		
+				}
 			}
 		}	
 	}	
