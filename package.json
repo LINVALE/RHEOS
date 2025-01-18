@@ -8,6 +8,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.21.2",
     "heos-api": "^4.0.0",
     "ip": "^1.1.8",
     "node-roon-api": "github:roonlabs/node-roon-api",
