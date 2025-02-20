@@ -8,6 +8,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@logdna/tail-file": "^4.0.2",
     "express": "^4.21.2",
     "heos-api": "^4.0.0",
     "ip": "^1.1.8",
@@ -17,7 +18,11 @@
     "node-roon-api-status": "github:roonlabs/node-roon-api-status",
     "node-roon-api-transport": "github:roonlabs/node-roon-api-transport",
     "node-roon-api-volume-control": "github:roonlabs/node-roon-api-volume-control",
+    "node-upnp-client": "^0.0.2",
     "node-uuid": "^1.4.8",
+    "soap": "^1.1.7",
+    "tail": "^2.2.6",
+    "tail-file": "^1.4.16",
     "telnet-client": "^2.0.8",
     "xml2js": "^0.6.0"
   },
