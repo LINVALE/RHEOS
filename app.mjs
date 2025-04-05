@@ -77,7 +77,7 @@ async function start_up(){
 					group.push(op.output_id)
 				}
 			}
-			services.svc_transport.group_outputs(group)
+			if (group.length) services.svc_transport.group_outputs(group)
 		})
 	    if(activated.every(o =>  linked.find (p => p.output == o.output_id))){
 			if (linked.length){
@@ -660,7 +660,7 @@ async function start_roon() {
 				              await create_player(p)
 				}
 				for await (const group of all_groups){
-					group[1].resolution = settings.values[group[1].sum_group.toString()] 
+					group[1].resolution = settings.values[group[1].sum_group?.toString()] 
 					if (rheos.mysettings.fixed_control && settings.values[group[0]] >-1 ){
 						create_fixed_group(group[1])
 					} else {	
