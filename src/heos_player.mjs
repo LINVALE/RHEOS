@@ -1,33 +1,24 @@
 
-import {unhide_value, get_date} from "./utils.mjs";
-import {group_enqueue} from "./heos_utils.mjs";
-import { rheos_outputs } from "../app.mjs";
-//import {LOG,TIMEOUT,SHORTTIMEOUT,heos_players} from '../config.js'
+
+import {group_enqueue,heos_command} from "./heos_utils.mjs";
+//import { heos_command } from "../heos_command.mjs";
+import {rheos,rheos_groups,rheos_zones,rheos_outputs,services,all_groups,fixed_groups} from "../app.mjs"
+import {sum_array,group_ready,unhide_value,hide_value,get_date} from "../src/utils.mjs"
+import {LOG,TIMEOUT,SHORTTIMEOUT,heos_players} from '../config.js'
 class Heos_player{
   constructor(player) {
     this._player = player; 
     this._zone = null;
     this._sum_group = player.pid;
-    this._output = null;
+    this._output = player.output;
     this._player.volume = {level: player?.volume || 0, state: player?.is_muted ? "on" : "off"}; 
-    this._player.now_playing = null;
-    this._player.position = 0;
-    this._player.duration = 0;
-    this._player.state = "stopped"; // Possible states: playing, paused, stopped
-    this._player.status = "idle"; // Possible statuses: idle, buffering, playing, paused
-    this._player.group = null; // Group ID if the player is part of a group
-    this._player.force_play = false; // Flag to force play even if already playing
-    this._player.next = null; // Next track information
-    this._player.payload = {}; // Additional payload data
-  }
-  static say_hello(res) {
-    console.log('Hello from rheos_zone class!',res);
+    this._player.group = null; 
+    this._player.payload = {}; 
+    heos_command("player", "get_volume",{pid : player.pid},1000,true).then((res) => this._player.volume.level = res.parsed.level)
+    heos_command("player", "get_mute",{pid : player.pid},1000,true).then((res) => this._player.volume.state = res.parsed.state)
   }
   static is_leader(){
     Boolean(this.pid == this.gid || !this.gid)
-  }
-  set player(player) {
-    this._player = player;
   }
   get saved_player_info() {
     const {zone,volume,state,status,group,now_playing,position,duration,rheos,next,payload,force_play, ...p} = this._player
@@ -38,10 +29,10 @@ class Heos_player{
     return this._player 
   }
   get pid (){
-    return this._player.id
+    return this._player.pid
   }
   get name (){
-    return this._player.name
+    return this._player?.name || this
   }
   get status (){
     return this._player.status
@@ -59,7 +50,7 @@ class Heos_player{
     return this._player.mode
   }
   get now_playing (){
-    return this._player.now_playing
+    return this._now_playing
   }
   get position (){
     return this._player.position
@@ -76,46 +67,89 @@ class Heos_player{
   get next (){
     return this._player.next
   }
+  get type(){
+    return this._player.type
+  }
   get payload (){
     return this._player.payload
   } 
-  set zone(zone) {
-  //if(zone?.zone_id !== this._zone?.zone_id){
-     
-   //
-    if (zone.outputs){
-      const sum = zone.outputs.reduce((acc, op) => acc + (unhide_value(op.source_controls[0].display_name) || 0), 0)
-      if (sum !== this._sum_group){
-        this._sum_group = sum
-        console.log("-> ",get_date(),"HEOS : ZONE      : GROUP HAS CHANGED FOR PLAYER",this._player.name,"TO",this._sum_group)
-        let group = zone.outputs.map(op => unhide_value(op.source_controls[0].display_name))
-        group_enqueue(group,sum).catch(()=>{console.log("ALREADY GROUPED",group)})
-      }
-      if(zone?.state !== this._zone?.state){
-        
-        console.log("-> ",get_date(),"HEOS : ZONE      : STATE HAS CHANGED FOR ZONE",this._player.name,"TO",zone.state,"FROM",this._zone?.state, "PLAYER STATE IS",this._player.state)
-       //his.zone.state = zone.state
-      }
-
-      this._zone = zone;
+  set payload (p){
+    const {mid = "",song = "",sid = ""} = p;	
+    if (mid && song !== this.payload?.song){	
+      if (mid < 2 ) {		
+        (Heos_player.is_leader(this.player)) &&  console.log("-> ",get_date(),"RHEOS: PLAYING   :",this.name.toUpperCase(),this.mode!=="FLOW" ? (palbum+","+p.song) : p.song)
+      }	  		
+    else if (this.player?.payload?.mid !== '1' && this.zone) {	
+      console.log("-> ",get_date(),"OTHER: PLAYING   :",this.name.toUpperCase(),"TO",song,sid,mid)			
+      services.svc_transport.control(this.zone,"stop", async() =>{
+        setTimeout(async ()=> {
+            await heos_command("player", "set_play_state",{pid : this.pid, state : "play"},TIMEOUT,true)	
+        },500)
+      });	
+      (Heos_player.is_leader(this.player)) &&  console.log("-> ",get_date(),"OTHER: PLAYING   :",this.name.toUpperCase(),p.album,",",p.song)
+      }   
     }
-  
-    
+    this._player.payload = p
   }
+  set zone(zone) {
+   let outputs = zone.outputs.filter(o => o.source_controls[0].display_name.includes("RHEOS"))
+   const sum = outputs.reduce((acc, op) => acc + (unhide_value(op.source_controls[0].display_name)), 0)
+   const sum_group = zone.outputs.filter((o) => o.source_controls[0].display_name.includes("RHEOS")).map(op => unhide_value(op.source_controls[0].display_name))
+   if (this.awaiting){
+    if (sum && this.awaiting.sum_group == sum ){
+      if ( [...rheos_groups.values()].findIndex((g) => g.sum_group ===sum_group) == -1){
+        this._sum_group = sum
+        console.log("-> ",get_date(),"HEOS : ZONE      : GROUP CREATED AND LEAD BY PLAYER",this._player.name,"TO",this._sum_group)
+        group_enqueue(this.awaiting.heos_group,sum_group).catch(()=>{console.log("ALREADY GROUPED",this.awaiting.group)})
+      } 
+    }
+    if (this.awaiting && zone.now_playing?.one_line?.line1 === this.awaiting?.now_playing?.one_line?.line1){
+      console.log("-> ",get_date(),"HEOS : FIXED     : GROUP HAS TRANSFERRED ",this.awaiting?.now_playing?.one_line?.line1, "TO",this._player.name)
+      services.svc_transport.group_outputs(this.awaiting.group)
+    } 
+    if (this.awaiting?.sum_group == sum && zone.outputs.length ==  this.awaiting.group.length && [...rheos_groups.values()].findIndex((g) => g.sum_group == sum)>-1){
+      console.log("-> ",get_date(),"HEOS : FIXED     : GROUP HAS FORMED ",zone.display_name,this.awaiting?.sum_group, sum )
+      if(zone?.is_play_allowed){
+        console.log("-> ",get_date(),"HEOS : FIXED     : GROUP IS READY TO PLAY ",zone.display_name)
+              setTimeout(async ()=> {
+              services.svc_transport.control(zone,'play')
+        },500)
+      }
+      if (zone?.state == "playing"){
+        console.log("-> ",get_date(),"HEOS : FIXED     : GROUP IS", zone?.state.toUpperCase(),zone.display_name)
+        this.awaiting = null
+      } 
+    }
+   }
+    this._zone = zone
+  }       
   get zone() {
     return this._zone;
   }
   set output(output) {
-    this._output = output;
+    if (this.player){
+    (async ()=>{
+        const{is_muted,value} = output.volume || {}
+        if (this._player?.volume?.level !== value ){
+          LOG && console.log("<- ",get_date(),"RHEOS:",this._volume ?"UPDATING  :" : "SETTING   :",this._player.name.toUpperCase(),"VOLUME",value, this._volume ? "FROM" : "",this._player.volume.level || "")	
+          
+          await heos_command("player", "set_volume", { pid: this._player.pid, level: value > 0 ? value  : 0 },200,true).catch(err => console.error(get_date(),err))	
+        }
+        if (this._player?.volume?.state  !== (is_muted ? "on" : "off")){ 
+          LOG && console.log("<- ",get_date(),"RHEOS:",this._volume ?"UPDATING  :" : "SETTING   :",this._player.name.toUpperCase(),"MUTE",(is_muted?"ON":"OFF"))
+          await heos_command("player", "set_mute", { pid: this._player.pid, state: is_muted ? "on": "off"},200,true).catch(err => console.error(get_date(),err))
+        }
+      })()
+    }
+  this._output = output;
   }
   get output() {
     if (this._output){
       return this._output
     } else {
-      this._output = Array.from(rheos_outputs.values(0)).find(o => o.output_id == this._output?.output_id || unhide_value(o.source_controls[0].display_name)== this._pid)
+      this._output = Array.from(rheos_outputs.values(0)).find(o => o.output_id == unhide_value(o.source_controls[0].display_name)== this._pid)
       return this._output}
   }
-  
   set volume(vol) {   
    if(vol.level !== this._player?.volume?.level){
     this._player.volume.level = vol.level
@@ -126,26 +160,13 @@ class Heos_player{
   }
   get volume (){
    return this._player.volume
-  }
- 
+  } 
   get sum_group(){
     return this._sum_group
   }
- 
-  print() {
-    console.log('PLAYER is: ' + this.player);
-    console.log('PLAYER NAME is: ' + this.player.name);
-    console.log('PLAYER VOLUME is: ' + this.volume);
-    if (this.zone) {    
-      console.log('Player is in zone with ID: ' + this.zone);
-    } else {
-      console.log('Player is not currently in a zone.');
-    }
-    if (this.player.now_playing) {
-      console.log('Now playing: ' + (this.zone.now_playing.one_line ? this.player.now_playing.one_line.line1 : 'No information available'));
-    } else {
-      console.log('No media is currently playing.');
-    }
-  }
+  
+ is_leader(){
+  return (this.gid && this.pid == this.gid)
+ }
 }
 export {Heos_player}

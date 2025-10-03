@@ -1,10 +1,12 @@
 import express from 'express'
-import {get_date} from './src/utils.mjs'
+import {choose_binary, get_date} from './src/utils.mjs'
 
 export const LOG_FILE_PATH = "./UPnP/Logs/";
 export const PROFILE_PATH = "./UPnP/Profiles/";
+export const APP = await choose_binary()
 export const TIMEOUT = 10000;
 export const SHORTTIMEOUT = 5000;
+export const STARTTIME = new Date()
 export const heos_players = new Map();
 export let LOG = process.argv.includes("-l")||process.argv.includes("-log")
 //export const image_server = {};
