@@ -114,6 +114,7 @@ class Heos_player{
       }  
     }
   const sum = get_zone_group_value(zone).sum_group
+  
   if (this?.awaiting?.now_playing){
     if ((this.awaiting?.group && this.awaiting?.sum_group != sum ) && zone.now_playing?.one_line?.line1 === this.awaiting?.now_playing?.one_line?.line1){
       console.log("-> ",get_date(),"HEOS : FIXED     : GROUP HAS TRANSFERRED ",this.awaiting?.now_playing?.two_line?.line1.slice(0,200), "TO",this._player.name)
@@ -162,9 +163,9 @@ class Heos_player{
         + (this._player.mode == "ART" || this._player.mode == "ALBUM"  ? (now_playing?.image_key) : `http://${rheos.system_info[0]}:${image_server.address().port}/Images/${rheos.mysettings.logo}`), 
         {encoding: "utf8",	flag: "w",	mode: 0o666 }
       )	.catch(err => console.error(get_date(),"ERROR WRITING METADATA FILE FOR",this._player.name,err))
-      if (this._zone?.now_playing){ setTimeout((zone)=>{
-        console.log("<- ",get_date(),"RHEOS: ZONE      : UPDATED",zone.display_name);services.svc_transport.control(zone,'play')
-      },1000,this._zone)}
+     // if(this._zone){setTimeout((zone)=>{
+      //  console.log("<- ",get_date(),"RHEOS: ZONE      : UPDATED",zone.display_name);services.svc_transport.control(zone,'play')
+      //},1000,this._zone)}
     } 
   
   }

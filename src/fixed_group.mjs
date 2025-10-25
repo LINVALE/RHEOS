@@ -25,6 +25,7 @@ class Fixed_group {
         }
     }
     set output(op){
+        console.log("-> ",get_date(),"RHEOS: SETTING   : FIXED OUTPUT",op.display_name,"VOLUME",op.volume?.value,op.volume?.is_muted ? "MUTED" : "UNMUTED")
         this._output = op 
         const {gid} = this._group
         if (gid){
@@ -56,7 +57,7 @@ class Fixed_group {
                     name : this._group.display_name,
                     group : this.group_outputs.concat([this._output?.output_id]),
                     heos_group : this._group.players.sort((a, b) => {let fa = a.role == "leader" ? 0 : 1; let fb = b.role == "leader" ? 0 : 1; return fa - fb}).map(p => p.pid),	
-                    sum_group : this._group.sum_group
+                    sum_group : get_group_sum_group(this._group)
                 }
                 console.log("-> ",get_date(),"RHEOS: REQUEST   : TRANSFER FROM",this.display_name,"TO", player.name)
                 services.svc_transport.transfer_zone( z,player.awaiting.group[0],	async (err) => { 
@@ -64,14 +65,15 @@ class Fixed_group {
                         console.error("-> ",get_date(),"RHEOS: TRANSFER  ⚠ ERROR - unable to transfer to destination output",this._group.outputs[0].display_name)
                     } 	
                 })
-            } else if (z.state == "paused" && z.now_playing?.seek_position>1 && !player?.awaiting?.now_playing){                
+            } else if (z.state == "paused" && z.now_playing?.seek_position>1 && !player?.awaiting){                
                 console.log("-> ",get_date(),"RHEOS: REQUEST   : UNGROUPING",player?.name,player.pid,z.display_name)
                 services.svc_transport.ungroup_outputs(z.outputs)   
-            } else if(z.state !== "playing" && z.is_seek_allowed && z.outputs.length == this._group.players.length +1 ){
-                console.log("-> ",get_date(),"RHEOS: REQUEST   : FORCING SEEK",z.state,z.now_playing?.seek_position,z.now_playing?.two_line.line1.slice(0,150) )
-                services.svc_transport.seek(z,'relative',1)
-            }
-            }
+            } else if(z.state !== "playing" && z.is_play_allowed && z.outputs.length == this._group.players.length +1 ){
+                console.log("-> ",get_date(),"RHEOS: REQUEST   : FORCING PLAY",z.state,z.now_playing?.seek_position,z.now_playing?.two_line.line1.slice(0,150) )
+                player.awaiting = null
+                services.svc_transport.control(z,'play')
+            } 
+        }
         this._zone = z
     }
     get zone(){
