@@ -1,9 +1,9 @@
-
 import {heos_players} from "../config.js"
 import {rheos,rheos_groups,rheos_zones,rheos_outputs,services,all_groups,fixed_groups } from "../app.mjs"
 import {sum_array,group_ready,unhide_value,hide_value,get_date} from "../src/utils.mjs"
 import {LOG, TIMEOUT, SHORTTIMEOUT } from "../config.js"
-import { get_players,heos_command,update_heos_groups,set_players,delete_players,start_heos} from "./heos_utils.mjs"
+import { get_players,heos_command,set_players,delete_players,start_heos, update_heos_groups} from "./heos_utils.mjs"
+import {Heos_group} from "./heos_group.mjs"
 //import { update_avr_status } from "./avr_utils.mjs"
 export async function listeners() {
 	rheos.listeners = true
@@ -18,6 +18,7 @@ export async function listeners() {
 	rheos.connection[1].write("system", "register_for_change_events", { enable: "on" })
 	.onClose(async (hadError,msg) => {setTimeout(async ()=>{
 		console.error(get_date(),"⚠ Listeners closed Socket 1", hadError,msg)
+		console.log("STARTING HEOS AGAIN")
 		await start_heos().catch((err) => {console.error(get_date(),"⚠ Error Starting Heos",err);reject()})
 		},1000)
 	})
@@ -25,6 +26,14 @@ export async function listeners() {
 		console.error(get_date(),"HEOS : ERROR :⚠", err)})
 	.on({ commandGroup: "event", command: "groups_changed" }, async (res) => {
 		LOG && console.log("-> ",get_date(),"HEOS : EVENT     : GROUPS CHANGED - UPDATING HEOS GROUPS")
+		res = await heos_command("group", "get_groups", TIMEOUT, false).catch(err => console.error(get_date(), err))
+		for (let g of res?.payload){
+            let group = rheos_zones.get(g.gid)
+            if (!group){	
+				group =rheos_zones.set(g.gid,new Heos_group(g)).get(g.gid)   
+			}
+			group.group = g
+		}
 		await update_heos_groups().then(LOG && console.log("-> ",get_date(),"HEOS : EVENT     : HEOS GROUPS UPDATED")).catch(err => console.error(get_date(),"⚠ Error Updating HEOS Groups",err))							
 	})
 	.on({ commandGroup: "event", command: "players_changed" }, async (res) => {
@@ -94,59 +103,28 @@ export async function listeners() {
 		const {pid,error} = res.heos.message.parsed;
 		const player = heos_players.get(pid).player;
 		if (player){
-
-
-		console.log("-> ",get_date(),"RHEOS: WARNING    ⚠",player.name.toUpperCase(),error)
-		//player.playback = setTimeout(async ()=> {
-			
-			//const zone = services.svc_transport.zone_by_zone_id(player.zone)
- 	
-				//if (zone?.is_play_allowed){
-					
-				//	services.svc_transport.control(zone,'play')
-				//}
-				//else if (error.includes("Unsupported")|| error.includes("decode")){
-				//	console.log("-> ",get_date(),"RHEOS: WARNING   ⚠ RETRYING",player.name.toUpperCase(),"  BY FORCING TO START OF TRACK")
-				//	services.svc_transport.seek(zone,'absolute',0)
-			    //} 
-				//if (zone?.state == "playing"){
-				//	let res = await heos_command("player", "get_play_state",{pid : player.pid},SHORTTIMEOUT,true)
-				//	const { heos: { message: { parsed: {state } } } } = res
-				//	if (state !== "play"){
-				//		setTimeout(async () => {
-						//	console.log("-> ",get_date(),"RHEOS: WARNING     ⚠",player.name.toUpperCase(),"FORCING PLAYER PLAY",zone.display_name)
-						//	await heos_command("player", "set_play_state",{pid : player.pid, state : "play"},SHORTTIMEOUT,true)
-				//		},3000)
-				//	}
-				//}
-		//},SHORTTIMEOUT)
-	}
+			console.log("-> ",get_date(),"RHEOS: WARNING   ⚠",player.name.toUpperCase(),error)
+		}
 	})	
 	.on({ commandGroup: "event", command: "player_volume_changed" }, async (res) => {
 		const { heos: { message: { parsed: { mute, level, pid } } } } = res
 		const player = heos_players.get(pid)
 		if(player?.output){
-				if (player.volume.value !== level || player?.volume?.state !== (mute == 'on')){
-					
-				
-				clearTimeout(player.avr_vol_delay)
-				player.avr_vol_delay = setTimeout(()=> { 
-					services.svc_transport.change_volume(player.output, 'absolute', level)	
-                    services.svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
-					//update_avr_status(player)
-				},500)
+			if (player.volume.value !== level || player?.volume?.state !== (mute == 'on')){
+				player.volume = {level : level, state : mute}
+				services.svc_transport.change_volume(player.output, 'absolute', level)	
+                services.svc_transport.mute(player.output, (mute == 'on' ? 'mute' : 'unmute'))	
             }
         }    	
 	})
     .on({ commandGroup: "event", command: "group_volume_changed" }, async (res) => {
 		const { heos: { message: { parsed: { level , gid } } } } = res
-        let fixed = fixed_groups.get(rheos_groups.get(gid)?.sum_group)
+        let fixed = fixed_groups.get(rheos_zones.get(gid)?.sum_group)
         if (fixed) fixed.volume = level
     })
     .on({ commandGroup: "event", command: "group_mute_changed" }, async (res) => {
 		const { heos: { message: { parsed: { mute : state,  gid } } } } = res
-        let fixed = fixed_groups.get(rheos_groups.get(gid)?.sum_group)
+        let fixed = fixed_groups.get(rheos_zones.get(gid)?.sum_group)
         if (fixed) fixed.mute = state
     })
-
 }

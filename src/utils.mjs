@@ -177,6 +177,74 @@ export function hide_value(n){
 	typeof(n)== "number"? n = n.toString(2) : n = parseInt(n.slice(0,n.toString().substring(1).search(/[\D]/)+1),10).toString(2)
 	return (n.replace(/[-01]/g, (m)=> chars[m]))
 }
+export async function get_zones(){
+	return(new Promise((resolve, reject) => {
+			services.svc_transport.get_zones((err,res) => (err ? reject(err) : resolve(res)) )	
+		})
+	)
+}
+export async function update_zone(zone){
+
+		return(new Promise((resolve, reject) => {
+			console.log("UPDATING ZONE",zone)
+
+			services.svc_transport.get_zones((err,res) => {if (err){
+				 reject(err)}
+				 else {
+//console.log(res)
+					let z = (res.zones.filter ((z) => z.zone_id == zone.zone_id)[0])
+					console.log("ZONE FOUND",z,zone.zone_id)
+					z = rheos_zones.get(zone.zone_id)
+					if (z){
+						z.zone = zone
+					}
+					//z.zone_id && rheos_zones.set(z.zone_id,z)
+					resolve()
+//es.zones.filter((z) => {(z?.zone_id || z) == zone.zone_id}
+				 }  	
+		})
+	
+}))
+}
+export   function  get_zone_players(z) {
+        if (!z?.outputs) return({players : [], sum_group : 0})
+        let group = {players : [], sum_group : 0}
+        for (let op of z.outputs){
+            if (op?.source_controls[0]?.display_name?.includes ("🔗")){
+                continue
+            }
+            if (op.source_controls[0].display_name.includes("RHEOS")){
+                let v = unhide_value(op.source_controls[0].display_name)
+                group.players.push(v)
+                group.sum_group = group.sum_group + v
+            }
+        }
+        return(group)
+    } 
+
+export async function get_zones_group_values(){
+
+	return(new Promise((resolve, reject) => {
+			services.svc_transport.get_zones((err,res) => {if (err) {
+				reject(err)}
+			else {
+				let zone_sum_values = []
+				for (let z of res.zones){
+					
+					if(z.display_name.includes("RHEOS") && z.outputs.length >1){
+                 		zone_sum_values.push(sum_array(z.outputs.map(o => o.source_controls[0].display_name.includes ("🔗") ? 0 : unhide_value(o.source_controls[0].display_name))))
+					}
+				}
+				resolve(zone_sum_values)
+			} 
+		})	
+	
+		}	
+	
+	))
+}
+
+
 export function unhide_value(n){
   if (!n) return
   if (typeof(n) != "string") {return }	
