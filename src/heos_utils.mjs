@@ -503,14 +503,14 @@ async function set_player_resolution(player) {
 			break
 		case ("LOW"): {
 			device.enabled = '1'
-			device.mode = ("thru")
+			device.mode = ("flc:0,r:-48000,s:16").toString().concat(rheos?.mysettings?.flow ? ",flow" : "")
 			device.sample_rate = '48000'
 		}
 			break
 		default: {
 			device.enabled = '1'
-			device.mode = ("flc:0,r:-48000,s:16").toString().concat(rheos?.mysettings?.flow ? ",flow" : "")
-			device.sample_rate = '48000'
+			device.mode = ("thru")
+			device.sample_rate = '192000'
 		}
 	}
 	switch (player.mode) {

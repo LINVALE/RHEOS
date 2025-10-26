@@ -150,7 +150,7 @@ class Heos_player{
         const duration = ((zone?.now_playing?.length - zone?.now_playing?.seek_position > 0) 
         ?
         zone?.now_playing?.length - zone?.now_playing?.seek_position 
-        : this._zone?.now_playing?.length) * 1000
+        : zone?.now_playing?.length) * 1000
         const position = (zone?.now_playing?.seek_position > 0 ? zone?.now_playing?.seek_position : 1) *1000 
         LOG && console.log("<- ",get_date(),"RHEOS: SET META  :",this._player.name.toUpperCase(),"♫",zone?.now_playing?.two_line?.line1.slice(0,100),duration,position)
         fs.writeFile(
@@ -163,9 +163,9 @@ class Heos_player{
         + (this._player.mode == "ART" || this._player.mode == "ALBUM"  ? (now_playing?.image_key) : `http://${rheos.system_info[0]}:${image_server.address().port}/Images/${rheos.mysettings.logo}`), 
         {encoding: "utf8",	flag: "w",	mode: 0o666 }
       )	.catch(err => console.error(get_date(),"ERROR WRITING METADATA FILE FOR",this._player.name,err))
-     // if(this._zone){setTimeout((zone)=>{
-      //  console.log("<- ",get_date(),"RHEOS: ZONE      : UPDATED",zone.display_name);services.svc_transport.control(zone,'play')
-      //},1000,this._zone)}
+      if(this._zone.now_playing){setTimeout((zone)=>{
+        console.log("<- ",get_date(),"RHEOS: ZONE      : UPDATED",zone.display_name);services.svc_transport.control(zone,'play')
+      },1000,this._zone)}
     } 
   
   }
