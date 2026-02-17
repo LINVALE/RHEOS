@@ -4,19 +4,19 @@
         "streambuf_size": "",
         "output_size": "",
         "stream_length": -3,
-        "seek_after_pause": 1,
+        "seek_after_pause": 0,
         "volume_on_play": -1,
         "volume_feedback": 0,
         "accept_nexturi": 0,
         "flac_header": 0,
         "keep_alive": 0,
         "next_delay": 15,
-        "send_coverart": false,
-        "send_metadata": false,
+        "send_coverart": true,
+        "send_metadata": true,
+        "send_icy":"false",
         "flow": 0,
         "max_safe_vol" : 80,
-        "logo" : "roon_dark.png"
-        
-    
+        "logo" : "roon_dark.png",
+        "port": 9332
     }
-    }
+}

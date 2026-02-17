@@ -1,0 +1,2018 @@
+00:53:44.332918 eno1  Out IP peter-NUC7i3BNK.localdomain.60890 > 239.255.255.250.1900: UDP, length 126
+E...]o@...ih...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+ST: urn:schemas-denon-com:device:ACT-Denon:1
+MX: 5
+MAN: "ssdp:discover"
+
+
+00:53:44.503184 eno1  Out IP peter-NUC7i3BNK.localdomain.44176 > 239.255.255.250.1900: UDP, length 130
+E...].@...f............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.530809 eno1  Out IP peter-NUC7i3BNK.localdomain.43017 > 239.255.255.250.1900: UDP, length 130
+E...].@...f..........	.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.582399 eno1  Out IP peter-NUC7i3BNK.localdomain.56592 > 239.255.255.250.1900: UDP, length 130
+E...].@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.585607 eno1  Out IP peter-NUC7i3BNK.localdomain.33574 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e..........&.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.604610 eno1  Out IP peter-NUC7i3BNK.localdomain.44176 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.631150 eno1  Out IP peter-NUC7i3BNK.localdomain.43017 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e..........	.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.645578 eno1  Out IP peter-NUC7i3BNK.localdomain.39324 > 239.255.255.250.1900: UDP, length 130
+E...^%@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.660650 eno1  Out IP peter-NUC7i3BNK.localdomain.54731 > 239.255.255.250.1900: UDP, length 130
+E...^'@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.671049 eno1  Out IP peter-NUC7i3BNK.localdomain.34471 > 239.255.255.250.1900: UDP, length 130
+E...^,@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.682588 eno1  Out IP peter-NUC7i3BNK.localdomain.56592 > 239.255.255.250.1900: UDP, length 130
+E...^/@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.685753 eno1  Out IP peter-NUC7i3BNK.localdomain.33574 > 239.255.255.250.1900: UDP, length 130
+E...^2@...e..........&.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.694502 eno1  Out IP peter-NUC7i3BNK.localdomain.45464 > 239.255.255.250.1900: UDP, length 130
+E...^4@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.706284 eno1  Out IP peter-NUC7i3BNK.localdomain.44176 > 239.255.255.250.1900: UDP, length 130
+E...^9@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.731445 eno1  Out IP peter-NUC7i3BNK.localdomain.43017 > 239.255.255.250.1900: UDP, length 130
+E...^>@...e..........	.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.745748 eno1  Out IP peter-NUC7i3BNK.localdomain.39324 > 239.255.255.250.1900: UDP, length 130
+E...^L@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.760859 eno1  Out IP peter-NUC7i3BNK.localdomain.54731 > 239.255.255.250.1900: UDP, length 130
+E...^T@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.772276 eno1  Out IP peter-NUC7i3BNK.localdomain.34471 > 239.255.255.250.1900: UDP, length 130
+E...^\@...ew...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.782831 eno1  Out IP peter-NUC7i3BNK.localdomain.56592 > 239.255.255.250.1900: UDP, length 130
+E...^f@...em...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.786026 eno1  Out IP peter-NUC7i3BNK.localdomain.33574 > 239.255.255.250.1900: UDP, length 130
+E...^i@...ej.........&.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.794672 eno1  Out IP peter-NUC7i3BNK.localdomain.45464 > 239.255.255.250.1900: UDP, length 130
+E...^o@...ed...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:44.806448 eno1  Out IP peter-NUC7i3BNK.localdomain.44176 > 239.255.255.250.1900: UDP, length 130
+E...^z@...eY...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.832192 eno1  Out IP peter-NUC7i3BNK.localdomain.43017 > 239.255.255.250.1900: UDP, length 130
+E...^.@...eL.........	.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.846330 eno1  Out IP peter-NUC7i3BNK.localdomain.39324 > 239.255.255.250.1900: UDP, length 130
+E...^.@...eF...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.861237 eno1  Out IP peter-NUC7i3BNK.localdomain.54731 > 239.255.255.250.1900: UDP, length 130
+E...^.@...eB...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.872575 eno1  Out IP peter-NUC7i3BNK.localdomain.34471 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e<...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.883034 eno1  Out IP peter-NUC7i3BNK.localdomain.56592 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e5...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.886199 eno1  Out IP peter-NUC7i3BNK.localdomain.33574 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e2.........&.l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.895087 eno1  Out IP peter-NUC7i3BNK.localdomain.45464 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e1...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.946474 eno1  Out IP peter-NUC7i3BNK.localdomain.39324 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e-...........l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.962434 eno1  Out IP peter-NUC7i3BNK.localdomain.54731 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.972780 eno1  Out IP peter-NUC7i3BNK.localdomain.34471 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:44.995343 eno1  Out IP peter-NUC7i3BNK.localdomain.45464 > 239.255.255.250.1900: UDP, length 130
+E...^.@...e............l....M-SEARCH * HTTP/1.1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+MX: 30
+ST: urn:schemas-upnp-org:device:MediaRenderer:2
+
+
+00:53:49.278794 eno1  M   IP Music-Room.localdomain.57540 > 239.255.255.250.1900: UDP, length 601
+E..u>.@................l.a.{NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: upnp:rootdevice
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6::upnp:rootdevice
+
+
+00:53:49.279095 eno1  M   IP Music-Room.localdomain.57540 > 239.255.255.250.1900: UDP, length 610
+E..~>.@................l.j
+.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6
+
+
+00:53:49.279247 eno1  M   IP Music-Room.localdomain.57540 > 239.255.255.250.1900: UDP, length 653
+E...>.@................l...8NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosDevice:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6::urn:schemas-denon-com:device:AiosDevice:1
+
+
+00:53:49.281572 eno1  M   IP Music-Room.localdomain.34760 > 239.255.255.250.1900: UDP, length 610
+E..~>.@................l.j.SNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6
+
+
+00:53:49.282031 eno1  M   IP Music-Room.localdomain.34760 > 239.255.255.250.1900: UDP, length 657
+E...>.@................l..5.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaRenderer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:49.283580 eno1  M   IP Music-Room.localdomain.41931 > 239.255.255.250.1900: UDP, length 655
+E...>.@................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:AVTransport:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:AVTransport:1
+
+
+00:53:49.285853 eno1  M   IP Music-Room.localdomain.49272 > 239.255.255.250.1900: UDP, length 667
+E...>.@..............x.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:53:49.287643 eno1  M   IP Music-Room.localdomain.53175 > 239.255.255.250.1900: UDP, length 665
+E...>.@................l..oUNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:RenderingControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+00:53:49.289617 eno1  M   IP Music-Room.localdomain.35817 > 239.255.255.250.1900: UDP, length 649
+E...>	@................l...;NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-tencent-com:service:QPlay:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-tencent-com:service:QPlay:1
+
+
+00:53:49.291676 eno1  M   IP Music-Room.localdomain.56342 > 239.255.255.250.1900: UDP, length 610
+E..~>
+@................l.j}.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:be410b4c-08ce-1e07-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6
+
+
+00:53:49.292405 eno1  M   IP Music-Room.localdomain.56342 > 239.255.255.250.1900: UDP, length 657
+E...>.@................l..K.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosServices:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:device:AiosServices:1
+
+
+00:53:49.294636 eno1  M   IP Music-Room.localdomain.59323 > 239.255.255.250.1900: UDP, length 659
+E...>.@................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ErrorHandler:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:ErrorHandler:1
+
+
+00:53:49.296781 eno1  M   IP Music-Room.localdomain.41026 > 239.255.255.250.1900: UDP, length 657
+E...>.@..............B.l..yNNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ZoneControl:2
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:ZoneControl:2
+
+
+00:53:49.298337 eno1  M   IP Music-Room.localdomain.43004 > 239.255.255.250.1900: UDP, length 659
+E...>.@................l...?NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:GroupControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:GroupControl:1
+
+
+00:53:49.299821 eno1  M   IP Music-Room.localdomain.56051 > 239.255.255.250.1900: UDP, length 610
+E..~>.@................l.jc.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7
+
+
+00:53:49.300510 eno1  M   IP Music-Room.localdomain.56051 > 239.255.255.250.1900: UDP, length 651
+E...>.@................l..].NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:ACT-Denon:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7::urn:schemas-denon-com:device:ACT-Denon:1
+
+
+00:53:49.301857 eno1  M   IP Music-Room.localdomain.57227 > 239.255.255.250.1900: UDP, length 641
+E...>.@................l..r%NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ACT:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7::urn:schemas-denon-com:service:ACT:1
+
+
+00:53:49.303341 eno1  M   IP Music-Room.localdomain.39286 > 239.255.255.250.1900: UDP, length 610
+E..~>.@..............v.l.j+.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb
+
+
+00:53:49.303625 eno1  M   IP Music-Room.localdomain.39286 > 239.255.255.250.1900: UDP, length 653
+E...>.@..............v.l...mNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaServer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:device:MediaServer:1
+
+
+00:53:49.305288 eno1  M   IP Music-Room.localdomain.38488 > 239.255.255.250.1900: UDP, length 665
+E...>.@..............X.l...mNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ContentDirectory:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:service:ContentDirectory:1
+
+
+00:53:49.307643 eno1  M   IP Music-Room.localdomain.58549 > 239.255.255.250.1900: UDP, length 667
+E...>.@................l...HNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:53:49.411135 eno1  M   IP Music-Room.localdomain.41600 > 239.255.255.250.1900: UDP, length 601
+E..u>.@................l.aX.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: upnp:rootdevice
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6::upnp:rootdevice
+
+
+00:53:49.411595 eno1  M   IP Music-Room.localdomain.41600 > 239.255.255.250.1900: UDP, length 610
+E..~>.@................l.jI.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6
+
+
+00:53:49.411844 eno1  M   IP Music-Room.localdomain.41600 > 239.255.255.250.1900: UDP, length 653
+E...>.@................l...|NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosDevice:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:de02f6bf-e75e-10ee-0080-000678f5aee6::urn:schemas-denon-com:device:AiosDevice:1
+
+
+00:53:49.414065 eno1  M   IP Music-Room.localdomain.59190 > 239.255.255.250.1900: UDP, length 610
+E..~>.@..............6.l.j..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6
+
+
+00:53:49.414500 eno1  M   IP Music-Room.localdomain.59190 > 239.255.255.250.1900: UDP, length 657
+E...>.@..............6.l...=NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaRenderer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:53:49.416462 eno1  M   IP Music-Room.localdomain.52685 > 239.255.255.250.1900: UDP, length 655
+E...> @................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:AVTransport:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:AVTransport:1
+
+
+00:53:49.418172 eno1  M   IP Music-Room.localdomain.46847 > 239.255.255.250.1900: UDP, length 667
+E...>!@................l...`NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:53:49.420369 eno1  M   IP Music-Room.localdomain.37583 > 239.255.255.250.1900: UDP, length 665
+E...>"@................l...=NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:RenderingControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+00:53:49.422085 eno1  M   IP Music-Room.localdomain.51214 > 239.255.255.250.1900: UDP, length 649
+E...>#@................l..l.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-tencent-com:service:QPlay:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:ca7d5603-7cb6-16e0-0080-000678f5aee6::urn:schemas-tencent-com:service:QPlay:1
+
+
+00:53:49.423744 eno1  M   IP Music-Room.localdomain.43809 > 239.255.255.250.1900: UDP, length 610
+E..~>$@..............!.l.j..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:be410b4c-08ce-1e07-0080-000678f5aee6
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6
+
+
+00:53:49.423913 eno1  M   IP Music-Room.localdomain.43809 > 239.255.255.250.1900: UDP, length 657
+E...>%@..............!.l..|.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosServices:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:device:AiosServices:1
+
+
+00:53:49.425382 eno1  M   IP Music-Room.localdomain.55057 > 239.255.255.250.1900: UDP, length 659
+E...>&@................l...PNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ErrorHandler:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:ErrorHandler:1
+
+
+00:53:49.426326 eno1  M   IP Music-Room.localdomain.32992 > 239.255.255.250.1900: UDP, length 657
+E...>'@................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ZoneControl:2
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:ZoneControl:2
+
+
+00:53:49.427063 eno1  M   IP Music-Room.localdomain.41991 > 239.255.255.250.1900: UDP, length 659
+E...>(@................l...4NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:GroupControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:be410b4c-08ce-1e07-0080-000678f5aee6::urn:schemas-denon-com:service:GroupControl:1
+
+
+00:53:49.427823 eno1  M   IP Music-Room.localdomain.57231 > 239.255.255.250.1900: UDP, length 610
+E..~>)@................l.j_JNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7
+
+
+00:53:49.427953 eno1  M   IP Music-Room.localdomain.57231 > 239.255.255.250.1900: UDP, length 651
+E...>*@................l..X.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:ACT-Denon:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7::urn:schemas-denon-com:device:ACT-Denon:1
+
+
+00:53:49.430860 eno1  M   IP Music-Room.localdomain.51671 > 239.255.255.250.1900: UDP, length 641
+E...>+@................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ACT:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:66410070-ff97-fa9c-e740-f353ae31f3d7::urn:schemas-denon-com:service:ACT:1
+
+
+00:53:49.432462 eno1  M   IP Music-Room.localdomain.32778 > 239.255.255.250.1900: UDP, length 610
+E..~>,@..............
+.l.jEVNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb
+
+
+00:53:49.432696 eno1  M   IP Music-Room.localdomain.32778 > 239.255.255.250.1900: UDP, length 653
+E...>-@..............
+.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaServer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:device:MediaServer:1
+
+
+00:53:49.433760 eno1  M   IP Music-Room.localdomain.39389 > 239.255.255.250.1900: UDP, length 665
+E...>.@................l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ContentDirectory:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:service:ContentDirectory:1
+
+
+00:53:49.434472 eno1  M   IP Music-Room.localdomain.36213 > 239.255.255.250.1900: UDP, length 667
+E...>/@..............u.l..h.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.215:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,-903644315,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-1756906421,-170053632,363364703
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 747994005
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a3c51eaf-bf37-7607-a354-23d0f31bc7bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:53:56.201429 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 410
+E...>.@..............-.l..}vNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: upnp:rootdevice
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::upnp:rootdevice
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201434 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 482
+E...>.@....C.........-.l...wNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:InternetGatewayDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::urn:schemas-upnp-org:device:InternetGatewayDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201436 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>	@..............-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201438 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 478
+E...>
+@....E.........-.l..1.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:WANConnectionDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:device:WANConnectionDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201440 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>.@..............-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201442 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 458
+E...>.@....W.........-.l..F.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:WANDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8::urn:schemas-upnp-org:device:WANDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201444 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>.@....}.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201447 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 472
+E...>.@....G.........-.l..S.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANIPConnection:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANIPConnection:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201736 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 486
+E...>.@....8.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201741 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 490
+E...>.@....3.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8::urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201744 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 474
+E...>.@....B.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANPPPConnection:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANPPPConnection:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.201748 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 474
+E...>.@....A.........-.l...0NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:Layer3Forwarding:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::urn:schemas-upnp-org:service:Layer3Forwarding:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452012 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 474
+E...>.@....5.........-.l...0NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:Layer3Forwarding:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::urn:schemas-upnp-org:service:Layer3Forwarding:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452017 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 474
+E...>.@....4.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANPPPConnection:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANPPPConnection:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452105 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 490
+E...> @....#.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8::urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452106 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 486
+E...>!@....&.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452108 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 472
+E...>"@....3.........-.l..S.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:service:WANIPConnection:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:service:WANIPConnection:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452110 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>#@....g.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452165 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 458
+E...>$@....?.........-.l..F.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:WANDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db8::urn:schemas-upnp-org:device:WANDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452168 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>%@....e.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452218 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 478
+E...>&@....).........-.l..1.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:WANConnectionDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db9::urn:schemas-upnp-org:device:WANConnectionDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452220 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 419
+E...>'@....c.........-.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452278 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 482
+E...>(@....#.........-.l...wNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: urn:schemas-upnp-org:device:InternetGatewayDevice:2
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::urn:schemas-upnp-org:device:InternetGatewayDevice:2
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:53:56.452281 eno1  M   IP unifi.localdomain.36909 > 239.255.255.250.1900: UDP, length 410
+E...>)@....j.........-.l..}vNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=60
+LOCATION: http://192.168.1.1:44581/rootDesc.xml
+SERVER: Linux/4.19.152-ui-alpine UPnP/1.1 MiniUPnPd/2.3.8
+NT: upnp:rootdevice
+USN: uuid:ae5c799c-332b-40ce-a91d-7516f5d32db7::upnp:rootdevice
+NTS: ssdp:alive
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: 1766198390
+BOOTID.UPNP.ORG: 1766198390
+CONFIGID.UPNP.ORG: 1337
+
+
+00:54:02.904130 eno1  M   IP Mog-and-Springer.localdomain.37440 > 239.255.255.250.1900: UDP, length 600
+E..trC@...O..........@.l.`Q:NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: upnp:rootdevice
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e::upnp:rootdevice
+
+
+00:54:02.905008 eno1  M   IP Mog-and-Springer.localdomain.37440 > 239.255.255.250.1900: UDP, length 609
+E..}rD@...O..........@.l.i7PNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e
+
+
+00:54:02.905593 eno1  M   IP Mog-and-Springer.localdomain.37440 > 239.255.255.250.1900: UDP, length 652
+E...rE@...O..........@.l..vfNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosDevice:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e::urn:schemas-denon-com:device:AiosDevice:1
+
+
+00:54:02.906024 eno1  M   IP Mog-and-Springer.localdomain.34975 > 239.255.255.250.1900: UDP, length 609
+E..}rF@...O............l.is#NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e
+
+
+00:54:02.906182 eno1  M   IP Mog-and-Springer.localdomain.34975 > 239.255.255.250.1900: UDP, length 656
+E...rG@...O............l...2NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaRenderer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:54:02.906458 eno1  M   IP Mog-and-Springer.localdomain.36519 > 239.255.255.250.1900: UDP, length 654
+E...rH@...O............l...gNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:AVTransport:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:AVTransport:1
+
+
+00:54:02.906744 eno1  M   IP Mog-and-Springer.localdomain.37867 > 239.255.255.250.1900: UDP, length 666
+E...rI@...O............l..M.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:54:02.908013 eno1  M   IP Mog-and-Springer.localdomain.35243 > 239.255.255.250.1900: UDP, length 664
+E...rJ@...O............l..>.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:RenderingControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+00:54:02.908414 eno1  M   IP Mog-and-Springer.localdomain.48383 > 239.255.255.250.1900: UDP, length 648
+E...rK@...O............l...YNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-tencent-com:service:QPlay:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-tencent-com:service:QPlay:1
+
+
+00:54:02.908813 eno1  M   IP Mog-and-Springer.localdomain.46019 > 239.255.255.250.1900: UDP, length 609
+E..}rL@...O............l.i.ONOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:7127998e-3236-1d3d-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e
+
+
+00:54:02.909037 eno1  M   IP Mog-and-Springer.localdomain.46019 > 239.255.255.250.1900: UDP, length 656
+E...rM@...O............l..6.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosServices:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:device:AiosServices:1
+
+
+00:54:02.909390 eno1  M   IP Mog-and-Springer.localdomain.38894 > 239.255.255.250.1900: UDP, length 658
+E...rN@...O............l..UmNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ErrorHandler:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:ErrorHandler:1
+
+
+00:54:02.909740 eno1  M   IP Mog-and-Springer.localdomain.56353 > 239.255.255.250.1900: UDP, length 656
+E...rO@...O..........!.l...%NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ZoneControl:2
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:ZoneControl:2
+
+
+00:54:02.910008 eno1  M   IP Mog-and-Springer.localdomain.45125 > 239.255.255.250.1900: UDP, length 658
+E...rP@...O..........E.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:GroupControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:GroupControl:1
+
+
+00:54:02.910333 eno1  M   IP Mog-and-Springer.localdomain.51488 > 239.255.255.250.1900: UDP, length 609
+E..}rQ@...O.......... .l.i>.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0
+
+
+00:54:02.910488 eno1  M   IP Mog-and-Springer.localdomain.51488 > 239.255.255.250.1900: UDP, length 652
+E...rR@...O.......... .l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaServer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:device:MediaServer:1
+
+
+00:54:02.911936 eno1  M   IP Mog-and-Springer.localdomain.44880 > 239.255.255.250.1900: UDP, length 664
+E...rS@...O..........P.l..%.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ContentDirectory:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:service:ContentDirectory:1
+
+
+00:54:02.912399 eno1  M   IP Mog-and-Springer.localdomain.44174 > 239.255.255.250.1900: UDP, length 666
+E...rT@...O............l..E.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:54:02.912739 eno1  M   IP Mog-and-Springer.localdomain.34839 > 239.255.255.250.1900: UDP, length 609
+E..}rU@...O............l.i.RNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b
+
+
+00:54:02.912896 eno1  M   IP Mog-and-Springer.localdomain.34839 > 239.255.255.250.1900: UDP, length 650
+E...rV@...O............l..jJNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:ACT-Denon:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b::urn:schemas-denon-com:device:ACT-Denon:1
+
+
+00:54:02.913113 eno1  M   IP Mog-and-Springer.localdomain.49763 > 239.255.255.250.1900: UDP, length 640
+E...rW@...O..........c.l..E@NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ACT:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b::urn:schemas-denon-com:service:ACT:1
+
+
+00:54:03.013810 eno1  M   IP Mog-and-Springer.localdomain.51325 > 239.255.255.250.1900: UDP, length 600
+E..tr`@...O..........}.l.`..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: upnp:rootdevice
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e::upnp:rootdevice
+
+
+00:54:03.014118 eno1  M   IP Mog-and-Springer.localdomain.51325 > 239.255.255.250.1900: UDP, length 609
+E..}ra@...O..........}.l.i..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e
+
+
+00:54:03.014239 eno1  M   IP Mog-and-Springer.localdomain.51325 > 239.255.255.250.1900: UDP, length 652
+E...rb@...O..........}.l..@)NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosDevice:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:aeb08a52-4e6d-1709-0080-000678c37a9e::urn:schemas-denon-com:device:AiosDevice:1
+
+
+00:54:03.014514 eno1  M   IP Mog-and-Springer.localdomain.39404 > 239.255.255.250.1900: UDP, length 609
+E..}rc@...O............l.ia.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e
+
+
+00:54:03.014704 eno1  M   IP Mog-and-Springer.localdomain.39404 > 239.255.255.250.1900: UDP, length 656
+E...rd@...O............l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaRenderer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+00:54:03.014991 eno1  M   IP Mog-and-Springer.localdomain.41254 > 239.255.255.250.1900: UDP, length 654
+E...re@...O..........&.l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:AVTransport:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:AVTransport:1
+
+
+00:54:03.015396 eno1  M   IP Mog-and-Springer.localdomain.57868 > 239.255.255.250.1900: UDP, length 666
+E...rf@...O............l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:54:03.015782 eno1  M   IP Mog-and-Springer.localdomain.34651 > 239.255.255.250.1900: UDP, length 664
+E...rg@...O..........[.l..@.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:RenderingControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+00:54:03.016121 eno1  M   IP Mog-and-Springer.localdomain.33496 > 239.255.255.250.1900: UDP, length 648
+E...rh@...O............l..=.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-tencent-com:service:QPlay:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:2817d121-c5f3-1dc7-0080-000678c37a9e::urn:schemas-tencent-com:service:QPlay:1
+
+
+00:54:03.016465 eno1  M   IP Mog-and-Springer.localdomain.33086 > 239.255.255.250.1900: UDP, length 609
+E..}ri@...O..........>.l.i..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:7127998e-3236-1d3d-0080-000678c37a9e
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e
+
+
+00:54:03.016597 eno1  M   IP Mog-and-Springer.localdomain.33086 > 239.255.255.250.1900: UDP, length 656
+E...rj@...O..........>.l..i.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:AiosServices:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:device:AiosServices:1
+
+
+00:54:03.016870 eno1  M   IP Mog-and-Springer.localdomain.42658 > 239.255.255.250.1900: UDP, length 658
+E...rk@...O............l..F.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ErrorHandler:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:ErrorHandler:1
+
+
+00:54:03.017329 eno1  M   IP Mog-and-Springer.localdomain.41375 > 239.255.255.250.1900: UDP, length 656
+E...rl@...O............l....NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ZoneControl:2
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:ZoneControl:2
+
+
+00:54:03.017615 eno1  M   IP Mog-and-Springer.localdomain.55260 > 239.255.255.250.1900: UDP, length 658
+E...rm@...O............l...XNOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:GroupControl:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:7127998e-3236-1d3d-0080-000678c37a9e::urn:schemas-denon-com:service:GroupControl:1
+
+
+00:54:03.017981 eno1  M   IP Mog-and-Springer.localdomain.38399 > 239.255.255.250.1900: UDP, length 609
+E..}rn@...O............l.iq.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0
+
+
+00:54:03.018124 eno1  M   IP Mog-and-Springer.localdomain.38399 > 239.255.255.250.1900: UDP, length 652
+E...ro@...O............l..E.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:device:MediaServer:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:device:MediaServer:1
+
+
+00:54:03.018428 eno1  M   IP Mog-and-Springer.localdomain.42833 > 239.255.255.250.1900: UDP, length 664
+E...rp@...O..........Q.l..-.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ContentDirectory:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:service:ContentDirectory:1
+
+
+00:54:03.021476 eno1  M   IP Mog-and-Springer.localdomain.41320 > 239.255.255.250.1900: UDP, length 666
+E...rq@...O..........h.l..Q NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-upnp-org:service:ConnectionManager:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:39d1bd11-85db-b815-8561-fafe03cd15d0::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+00:54:03.022000 eno1  M   IP Mog-and-Springer.localdomain.33393 > 239.255.255.250.1900: UDP, length 609
+E..}rr@...O..........q.l.i..NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b
+
+
+00:54:03.022188 eno1  M   IP Mog-and-Springer.localdomain.33393 > 239.255.255.250.1900: UDP, length 650
+E...rs@...O..........q.l..o.NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:device:ACT-Denon:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b::urn:schemas-denon-com:device:ACT-Denon:1
+
+
+00:54:03.022595 eno1  M   IP Mog-and-Springer.localdomain.35966 > 239.255.255.250.1900: UDP, length 640
+E...rt@...O..........~.l..{%NOTIFY * HTTP/1.1
+HOST: 239.255.255.250:1900
+CACHE-CONTROL: max-age=180
+LOCATION: http://192.168.1.160:60006/upnp/desc/aios_device/aios_device.xml
+VERSIONS.UPNP.HEOS.COM: 11,1485145229,1598223468,363364703,1095174108,-824042063,105553199,-316033077,-258011588,-170053632,363364703,-988109880
+NETWORKID.UPNP.HEOS.COM: 0cea14c6743f
+BOOTID.UPNP.ORG: 561494018
+IPCACHE.URL.UPNP.HEOS.COM: /ajax/upnp/get_device_info
+NT: urn:schemas-denon-com:service:ACT:1
+NTS: ssdp:alive
+SERVER: LINUX UPnP/1.0 Denon-Heos/5571f176708943689145e27cba5725c31c9b0e6f
+USN: uuid:a14ffc80-cc86-ad10-9b42-cf76f232cf5b::urn:schemas-denon-com:service:ACT:1
+
+
+00:54:04.205435 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 140
+E...N...@.x............l..=.M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-dm-holdings-com:service:X_WholeHomeAudio:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.306452 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 133
+E...N...@.x............l...TM-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:service:ContentDirectory:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.407481 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 141
+E...N...@.x............l..B#M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.508440 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 133
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-intel-com:service:PowerManagement:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.609454 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 132
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:service:WANIPConnection:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.710503 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 134
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-digion-com:service:X_AccessControl:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.811575 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 128
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-digion-com:service:X_Landisk:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:04.912473 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 127
+E...N...@.x............l..E.M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:device:MediaServer:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.013610 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 140
+E...N...@.x............l..=.M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-dm-holdings-com:service:X_WholeHomeAudio:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.114573 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 133
+E...N...@.x............l...TM-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:service:ContentDirectory:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.215500 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 141
+E...N...@.x............l..B#M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.316491 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 133
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-intel-com:service:PowerManagement:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.417445 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 132
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:service:WANIPConnection:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.518530 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 134
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-digion-com:service:X_AccessControl:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.619513 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 128
+E...N...@.x............l....M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-digion-com:service:X_Landisk:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+00:54:06.720620 eno1  M   IP 0006781F485A.localdomain.4996 > 239.255.255.250.1900: UDP, length 127
+E...N...@.x............l..E.M-SEARCH * HTTP/1.1
+MX: 5
+ST: urn:schemas-upnp-org:device:MediaServer:1
+HOST: 239.255.255.250:1900
+MAN: "ssdp:discover"
+
+
+
